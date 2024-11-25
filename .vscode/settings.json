@@ -1,7 +1,7 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.unstable": true,
+  "deno.unstable": [],
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
   "[typescript]": {
@@ -9,5 +9,9 @@
   },
   "cSpell.words": [
     "Cooldown"
-  ]
+  ],
+  "deno.codeLens.implementations": true,
+  "deno.codeLens.references": true,
+  "deno.codeLens.referencesAllFunctions": true,
+  "deno.codeLens.test": true
 }

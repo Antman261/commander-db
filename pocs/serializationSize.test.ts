@@ -41,3 +41,19 @@ Deno.test.ignore(
     expect(result.symbols).toMatchObject(symbols);
   },
 );
+
+Deno.test("numbers are smaller than bigint for small integers", () => {
+  const serial = {
+    number: serialize(52),
+    bigint: serialize(52n),
+  };
+  const result = {
+    number: deserialize(serial.number),
+    bigint: deserialize(serial.bigint),
+  };
+  console.log(result);
+  console.log(serial);
+
+  expect(serial.bigint.byteLength).toBeGreaterThan(serial.number.byteLength);
+  expect(result.bigint).toEqual(BigInt(result.number));
+});
