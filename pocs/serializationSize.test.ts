@@ -57,3 +57,28 @@ Deno.test("numbers are smaller than bigint for small integers", () => {
   expect(serial.bigint.byteLength).toBeGreaterThan(serial.number.byteLength);
   expect(result.bigint).toEqual(BigInt(result.number));
 });
+
+Deno.test("number is smaller than bigint for integers between 2^32 and 2^52", () => {
+  const serial = {
+    "number:2**33": serialize(2 ** 33),
+    "number:2**52": serialize(2 ** 52),
+    "bigint:2**33": serialize(2n ** 33n),
+    "bigint:2**52": serialize(2n ** 52n),
+  };
+  const result = {
+    "number:2**33": deserialize(serial["number:2**33"]),
+    "number:2**52": deserialize(serial["number:2**52"]),
+    "bigint:2**33": deserialize(serial["bigint:2**33"]),
+    "bigint:2**52": deserialize(serial["bigint:2**52"]),
+  };
+  console.log(result);
+  console.log(serial);
+
+  expect(serial["bigint:2**33"].byteLength).toEqual(12);
+  expect(serial["number:2**33"].byteLength).toEqual(11);
+  expect(result["bigint:2**33"]).toEqual(BigInt(result["number:2**33"]));
+
+  expect(serial["bigint:2**52"].byteLength).toEqual(12);
+  expect(serial["number:2**52"].byteLength).toEqual(11);
+  expect(result["bigint:2**52"]).toEqual(BigInt(result["number:2**52"]));
+});

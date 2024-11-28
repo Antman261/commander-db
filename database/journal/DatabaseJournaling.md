@@ -6,27 +6,51 @@ In the context of databases, a journal (AKA write-ahead-log (WAL)) is a log of a
 
 event sourcing takes inspiration from the journaling approach implemented by databases, so it's worth considering if a database journal would be redundant in an event sourcing database. 
 
-What operations will EggyDB perform, and what extra information could each journal entry contain that wouldn't otherwise be stored?
+What operations will EggyDB perform?
 
 * commands will be received (saved to disk)
-  * command id 
 * commands will be started (commands may not begin immediately after being received due to pre-existing commands in the queue)
-* commands will be completed
-  * completed commands will/could contain events -- events could exist in journal before being saved to disk
+* commands will be completed (completed commands will contain events)
 * commands will be marked as failed
-* commands will be re-attempted
+* commands will be re-attempted (alias for command started)
+* event streams will be created
+* events will be appended to an event stream
+* event streams will be migrated to new schemas (event migration will cause a full rewrite of the event stream files)
+* event streams will be archived (maybe?)
+* latest event per aggregate instance will be updated
+* idempotency keys will be saved
+* idempotency keys will expire
+* idempotency keys will be deleted
 * workflows will be started
 * workflows will be completed
 * workflows will be resumed
 * workflows will be marked as failed
-* callstacks " " 
-* workflows " "
-* callstacks " "
+* requests " "
 * checkpoints will be saved to disk (fsync-ed)
 * journal entries will be saved to OS   (not fsync-ed)
 * journal entries will be saved to disk (fsync-ed)
+* Stale journal entries will be deleted from disk
+* aggregate instances will be assigned (locked) to application instances for processing -- all pending commands for an aggregate instance can be sent to an application to optimize for processing over network
+* aggregate instance can be unassigned from an application instance
+* application instances will have their lastSeenAt updated
+* application instances will be deregistered
 
-we could think of the journal as a stream of redux actions, and each child process he received the same stream of actions
+With a list of operations, we can consider which operations are atomically bound -- they must not occur independently:
+
+* command received: idempotency key saved; application instance seen; (command started); (workflow updated); 
+* command started: aggregate instance assigned to application instance; (workflow started?); (workflow updated);
+* command completed: events appended to stream; aggregate instance latest event updated; application instance seen; (workflow completed); (workflow updated); (event stream started); (aggregate instance unassigned from application instance);
+* command failed: (workflow failed); (aggregate instance unassigned from application instance); (application instance deregistered);
+* workflow started; aggregate instance assigned to application instance;
+* workflow failed; (aggregate instance unassigned from application instance); (application instance deregistered); 
+* workflow completed; application instance seen; (aggregate instance unassigned from application instance);
+* request started; workflow updated;
+* request completed; workflow updated;
+* request failed; workflow failed; (aggregate instance unassigned from application instance); (application instance deregistered);
+* checkpoint started;
+* checkpoint completed;
+
+we could think of the journal as a stream of redux actions, and each child process he received the same stream of actions.
 
 ## Benefits of Journaling
 
