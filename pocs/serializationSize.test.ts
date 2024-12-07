@@ -17,6 +17,7 @@ const symbols = {
     [Symbol.for("at")]: new Date(),
   },
 };
+
 Deno.test("symbols are smaller than string literals", async () => {
   const result = {
     strings: serialize(strings),
@@ -81,4 +82,20 @@ Deno.test("number is smaller than bigint for integers between 2^32 and 2^52", ()
   expect(serial["bigint:2**52"].byteLength).toEqual(12);
   expect(serial["number:2**52"].byteLength).toEqual(11);
   expect(result["bigint:2**52"]).toEqual(BigInt(result["number:2**52"]));
+});
+
+Deno.test("date is smaller than timestamp", () => {
+  const date = new Date();
+  const timestamp = date.getTime();
+  const serialDate = serialize(date);
+  const serialTimestamp = serialize(timestamp);
+  const resultDate = deserialize(serialDate);
+  const resultTimestamp = deserialize(serialTimestamp);
+  console.log({
+    serialDate,
+    serialTimestamp,
+    resultDate,
+    resultTimestamp,
+  });
+  expect(date.getTime()).toEqual(resultDate.getTime());
 });

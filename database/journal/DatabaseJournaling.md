@@ -4,7 +4,7 @@ In the context of databases, a journal (AKA write-ahead-log (WAL)) is a log of a
 
 ## Is journaling useful for EggyDB as an event-based database?
 
-event sourcing takes inspiration from the journaling approach implemented by databases, so it's worth considering if a database journal would be redundant in an event sourcing database. 
+Event Sourcing takes inspiration, in part, from the journaling approach implemented by databases. So, it's worth considering if a database journal would be redundant in an event sourcing database. 
 
 What operations will EggyDB perform?
 
@@ -29,15 +29,15 @@ What operations will EggyDB perform?
 * checkpoints will be saved to disk (fsync-ed)
 * journal entries will be saved to OS   (not fsync-ed)
 * journal entries will be saved to disk (fsync-ed)
-* Stale journal entries will be deleted from disk
+* Stale journal entries will be archived & deleted from disk
 * aggregate instances will be assigned (locked) to application instances for processing -- all pending commands for an aggregate instance can be sent to an application to optimize for processing over network
 * aggregate instance can be unassigned from an application instance
 * application instances will have their lastSeenAt updated
 * application instances will be deregistered
 
-With a list of operations, we can consider which operations are atomically bound -- they must not occur independently:
+Now that we have a list of operations, we can consider which operations are atomically bound, that is, they must not occur independently and would benefit from being written in the same journal entry:
 
-* command received: idempotency key saved; application instance seen; (command started); (workflow updated); 
+* command received: application instance seen; (idempotency key saved); (command started); (workflow updated); 
 * command started: aggregate instance assigned to application instance; (workflow started?); (workflow updated);
 * command completed: events appended to stream; aggregate instance latest event updated; application instance seen; (workflow completed); (workflow updated); (event stream started); (aggregate instance unassigned from application instance);
 * command failed: (workflow failed); (aggregate instance unassigned from application instance); (application instance deregistered);
@@ -71,3 +71,8 @@ Implementing a database journal enables reads to be scaled horizontally. It work
 
 * https://stackoverflow.com/a/21735886/2935062 SSD performance
 https://superuser.com/a/1344713
+* instead of deleting archived WAL, copy it to GCS/s3 -- this becomes a point-in-time backup
+* random idea: what if the application instances consumed the WAL and ran the database in replication mode? then they wouldn't need to query anything, because they are effectively running the database in memory, when they see a journal entry assigning a command to their instance, they would begin processing, generate the draft-WAL in memory, and send it back to the database to "commit" their transaction
+  * the database could be selective about WAL entries it sends to applications -- only "command completed" entries for commands not assigned to the application instance
+  * why bother making a distinction between application and database? if every application instance is receiving every command and running as a replica, then the application instances are also failover database instances. 
+  * application and database could communicate over IPC on the same machine to provide isolation, divide resources (especially CPU), and avoid blocking each other's event loop or corrupting memory

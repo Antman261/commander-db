@@ -24,3 +24,4 @@
 * could use columnar storage for some things: each column would be stored in a separate file
 * because an event stream has sequential event ids we can encode the range of events contained within each file into the name of each file
 * or, if we have the same number of events in each file we could name each file with the id of the first event it contains -- then we would always be able to open the right file to find an event without searching
+* Every virtual page table could have a dry log and a wet log. The dry log is changes that a transaction has said it would like to make and the virtual page table returns the journal entries for that change, and keeps those entries in the dry log. Then when the journaller emits its entries back to the virtual page tables, the page table moves those over from the dry log to the wet log because that means the transaction has been committed. It then executes those changes.
