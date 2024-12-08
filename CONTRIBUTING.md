@@ -14,4 +14,5 @@ Trying a more "denonic" folder structure: https://dev.to/reggi/organizing-files-
 │   ├── utils: small functions / generic types with broad utility
 ├── client: the client, will export as node package
 │   
-├── testApp: an application making use of EggyDB 
+├── testApp: an application making use of EggyDB
+```

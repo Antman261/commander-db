@@ -1,4 +1,4 @@
-import { Bigint128 } from "../primitive/Bigint128.ts";
+import { Bigint128 } from '../primitive/Bigint128.ts';
 import {
   CallStackClientInput,
   CallStackCompletedStored,
@@ -6,16 +6,16 @@ import {
   CallStackPendingStored,
   CallStackRunningStored,
   Kind,
-} from "./CallStack.ts";
+} from './CallStack.ts';
 
-export type CommandClientInput = Omit<CallStackClientInput, "kind"> & {
-  kind: Kind["command"];
+export type CommandClientInput = Omit<CallStackClientInput, 'kind'> & {
+  kind: Kind['command'];
 };
 
 export type CommandPendingStored =
-  & Omit<CallStackPendingStored, "kind">
+  & Omit<CallStackPendingStored, 'kind'>
   & {
-    kind: Kind["command"];
+    kind: Kind['command'];
     aggregate: string;
     aggregateId: Bigint128;
     /**
@@ -30,15 +30,15 @@ export type CommandPendingStored =
   };
 
 export type CommandRunningStored =
-  & Omit<CallStackRunningStored, "kind">
-  & Omit<CommandPendingStored, "status">;
+  & Omit<CallStackRunningStored, 'kind'>
+  & Omit<CommandPendingStored, 'status'>;
 export type CommandExhaustedStored =
-  & Omit<CallStackExhaustedStored, "kind">
-  & Omit<CommandPendingStored, "status">;
+  & Omit<CallStackExhaustedStored, 'kind'>
+  & Omit<CommandPendingStored, 'status'>;
 
 export type CommandCompletedStored =
-  & Omit<CallStackCompletedStored, "kind">
-  & Omit<CommandPendingStored, "status">;
+  & Omit<CallStackCompletedStored, 'kind'>
+  & Omit<CommandPendingStored, 'status'>;
 
 export type CommandStored =
   | CommandPendingStored

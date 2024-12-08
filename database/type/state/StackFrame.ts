@@ -1,5 +1,5 @@
-import { Bigint128 } from "../primitive/Bigint128.ts";
-import { UnknownObject } from "../primitive/UnknownObject.ts";
+import { Bigint128 } from '../primitive/Bigint128.ts';
+import { UnknownObject } from '../primitive/UnknownObject.ts';
 
 /**
  * the index position of a stack frame in the parent frame's call stack

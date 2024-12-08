@@ -1,8 +1,8 @@
 import { serialize } from 'node:v8';
-import { writeFile} from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 
 const obj: Record<string, any> = {
-  name: "I_AM_A_SASQUATCH",
+  name: 'I_AM_A_SASQUATCH',
   type: 'FOOBAR',
   payload: {
     bars: ['beep', 12, 'boop', 19600050036729n, true],
@@ -11,7 +11,7 @@ const obj: Record<string, any> = {
 };
 
 obj.payload.obj = obj;
-console.log(obj)
+console.log(obj);
 
 const bytes = serialize(obj);
 console.log(bytes.toString());
@@ -19,4 +19,4 @@ console.log(bytes.toString());
 console.log(bytes.byteLength);
 
 // @ts-ignore: Deno seems pretty confused about buffers
-await writeFile("node_serialized.bdat", bytes); 
+await writeFile('node_serialized.bdat', bytes);

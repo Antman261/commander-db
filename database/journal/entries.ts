@@ -1,7 +1,4 @@
-import { DateTime } from "../type/primitive/DateTime.ts";
-import { AppInstance } from "../type/state/AppInstance.ts";
-import { CommandPendingStored } from "../type/state/Command.ts";
-import { CallStackStored, WorkflowStored } from "../type/state/CallStack.ts";
+import { AppInstance, CallStack, CommandPendingStored, DateTime, WorkflowStored } from '@db/type';
 
 const journalEntryKind = {
   cmdIssued: 0,
@@ -18,31 +15,31 @@ const journalEntryKind = {
 type JournalEntryKind = typeof journalEntryKind;
 
 type DraftEntryBase = {
-  appInstanceId: AppInstance["id"];
+  appInstanceId: AppInstance['id'];
   submittedAt: DateTime;
 };
 
-type NewCommand = Omit<CommandPendingStored, "error">;
+type NewCommand = Omit<CommandPendingStored, 'error'>;
 
 export type CommandIssuedDraftEntry = DraftEntryBase & {
-  kind: JournalEntryKind["cmdIssued"];
+  kind: JournalEntryKind['cmdIssued'];
   command: NewCommand;
   /**
    * A workflowStackId will only be present if the command was issued from within a workflow.
    */
-  workflowStackId?: WorkflowStored["id"];
+  workflowStackId?: WorkflowStored['id'];
 };
 
 export type CommandStartedDraftEntry = DraftEntryBase & {
-  kind: JournalEntryKind["cmdStarted"];
+  kind: JournalEntryKind['cmdStarted'];
   /**
    * The command id will be used as the stack id for the resulting call stack
    */
-  commandId: CommandPendingStored["id"];
+  commandId: CommandPendingStored['id'];
 };
 
 export type StackContinuedDraftEntry = DraftEntryBase & {
-  kind: JournalEntryKind["stackContinued"];
-  stackId: CallStackStored["id"];
-  commandId?: CommandPendingStored["id"];
+  kind: JournalEntryKind['stackContinued'];
+  stackId: CallStackStored['id'];
+  commandId?: CommandPendingStored['id'];
 };

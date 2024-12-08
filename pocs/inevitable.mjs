@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const identityCtx = new AsyncLocalStorage();
 const getIdentityCtx = () => identityCtx.getStore();
@@ -23,7 +23,7 @@ const createIdentityCtx = (funcName, opts) => {
   let lastChildCreatedAt = Date.now();
   const frameIdxGenerator = createFrameTupleGenerator();
 
-  function *createFrameTupleGenerator() {
+  function* createFrameTupleGenerator() {
     let frameIdx = 0;
     while (true) {
       yield frameIdx;
@@ -48,14 +48,16 @@ const createIdentityCtx = (funcName, opts) => {
         callChain: newChildCallChain, // new array is required
         stackId,
         stack,
-      }
+      };
     },
     getFrameTuple: () => [funcName, stackId, ...callChain],
     hasResolved() {
-      whenConditionPasses(() => Date.now() - lastChildCreatedAt > 2000).then(end);
-    }
-  }
-}
+      whenConditionPasses(() => Date.now() - lastChildCreatedAt > 2000).then(
+        end,
+      );
+    },
+  };
+};
 
 function whenConditionPasses(checkCondition, checkMs = 1000, timeoutMs = 0) {
   let resolve;
@@ -68,7 +70,7 @@ function whenConditionPasses(checkCondition, checkMs = 1000, timeoutMs = 0) {
   const interval = setInterval(async () => {
     if (await checkCondition()) {
       clearInterval(interval);
-      clearTimeout(timeout)
+      clearTimeout(timeout);
       resolve();
     }
   }, checkMs);
@@ -86,15 +88,19 @@ function whenConditionPasses(checkCondition, checkMs = 1000, timeoutMs = 0) {
 function withIdentity(func, opt) {
   const funcName = opt?.funcName ?? (func.name || func.constructor.name);
   if (!funcName) throw new Error(`Function name not set`);
-  if (funcName === 'AsyncFunction') throw new Error(`Function name not set: Either de-anonymise function or provide { funcName } via options`);
+  if (funcName === 'AsyncFunction') {
+    throw new Error(
+      `Function name not set: Either de-anonymise function or provide { funcName } via options`,
+    );
+  }
   const o = {
-    async [funcName] (...args) {
+    async [funcName](...args) {
       const ctx = createIdentityCtx(funcName, { debug: opt.debug });
       const result = identityCtx.run(ctx, func, ...args);
       ctx.hasResolved();
       return result;
-    }
-  }
+    },
+  };
 
   return o[funcName];
 }
@@ -103,8 +109,8 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isL1Parent = (i) => i % 3 === 0;
 const isL2Parent = (i) => [16, 23].includes(i);
-const run = withIdentity (async () => {
-  console.log(getIdentityCtx().getFrameTuple())
+const run = withIdentity(async () => {
+  console.log(getIdentityCtx().getFrameTuple());
   const frames = [];
   const fn = withIdentity(async (i) => {
     const ctx = getIdentityCtx();
@@ -123,15 +129,14 @@ const run = withIdentity (async () => {
   const stacks = await Promise.all([run(), run(), run(), run()]);
 
   const allPassed = stacks[0].every((frame) => {
-    const equivalentFrames = stacks.map((stack) => stack.find(f => f.i === frame.i));
+    const equivalentFrames = stacks.map((stack) => stack.find((f) => f.i === frame.i));
     console.log(equivalentFrames);
     const passed = framesShareCallchainIdentity(equivalentFrames);
     console.assert(passed);
     return passed;
   });
-  allPassed && console.log('WOOOOHOOOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+  allPassed && console.log('WOOOOHOOOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 })();
-
 
 function framesShareCallchainIdentity(frames) {
   const frameIdFromTuple = (frame) => {

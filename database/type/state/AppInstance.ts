@@ -1,5 +1,5 @@
-import { SmallIntU } from "../primitive/SmallIntU.ts";
-import { ValueOf } from "../../util/ValueOf.ts";
+import { SmallIntU } from '../primitive/SmallIntU.ts';
+import { ValueOf } from '@db/utl';
 
 /**
  * A particular client application instance. Tracked both for transaction management and Skuos: Inevitable.

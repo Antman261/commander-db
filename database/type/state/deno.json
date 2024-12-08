@@ -1,0 +1,4 @@
+{
+  "name": "@type/state",
+  "exports": "./mod.ts"
+}

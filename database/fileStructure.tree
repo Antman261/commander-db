@@ -1,0 +1,36 @@
+├── data
+│  ├── events
+│  │  ├── ${firstEventId}.e
+│  │  ├── ${columnName}-${firstEventId}.i
+│  │  ├── payloads-${firstEventId}.d
+│  │  ├── metadata-${firstEventId}.d
+│  │  ├── event-id-seq.s
+│  ├── commandflows    # workflows and commands are stored together -- a workflow is just a special command
+│  │  ├── ${aggregateName}
+│  │  │  ├── agg-${firstAggId}.t
+│  │  │  ├── agg-id-seq.s
+│  │  │  ├── agg-pid.i
+│  │  ├── com-seq.s
+│  │  ├── pending.q
+│  │  ├── future.q     # scheduled commands 
+│  │  ├── completed.i  # idempotency index
+│  │  ├── completed.q  # result of processed command is events: no out-of-line data
+│  │  ├── exhausted.q  # errors written directly in line with command
+│  │  ├── archivable.q # commands ready to be archived
+│  │  ├── errors.d     # error data
+│  │  ├── frames.d     # stack frame data 
+│  │  └── payloads.d   # user supplied command data
+│  ├── requests
+│  │  ├── pending.q
+│  │  ├── completed.i
+│  │  ├── completed.q
+│  │  ├── exhausted.q
+│  │  ├── archivable.q
+│  │  ├── results.d
+│  │  └── payloads.d
+│  ├── meta
+│  │  ├── chkpoint.d
+│  │  └── state.df
+│  ├── journal
+│  │  ├── ${entryId}.j
+│  │  ├── seq.d
