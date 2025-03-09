@@ -1,5 +1,4 @@
 {
   "name": "@db/type",
-  "exports": "./mod.ts", 
-  "workspace": ["./state", "./primitive"]
+  "exports": "./mod.ts"
 }

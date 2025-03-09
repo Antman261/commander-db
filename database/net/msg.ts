@@ -1,5 +1,8 @@
-const decoder = new TextDecoder();
-export async function handleMessage(message: Uint8Array) {
+export type ClientMessage = {
+  kind: string; // todo: replace with discriminated union
+};
+
+export async function handleMessage(message: ClientMessage): Promise<void> {
   // mock implementation: todo replace
-  console.log("received message:", decoder.decode(message));
+  console.log('received message:', message);
 }

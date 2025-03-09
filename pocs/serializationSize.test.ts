@@ -162,7 +162,7 @@ Deno.test('an array containing an integer is same size as an array containing tw
     int: serialize([3]), // equivalent integer flag for three true booleans
   };
   const result = {
-    bool: deserialize(serial.bool),
+    bool: deserialize(serial.bool) as boolean[],
     int: deserialize(serial.int),
   };
   console.log('boolArrayByteLength:', serial.bool.byteLength); // 9

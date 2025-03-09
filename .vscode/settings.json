@@ -1,7 +1,6 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.unstable": [],
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
   "[typescript]": {
@@ -13,5 +12,25 @@
   "deno.codeLens.implementations": true,
   "deno.codeLens.references": true,
   "deno.codeLens.referencesAllFunctions": true,
-  "deno.codeLens.test": true
+  "deno.codeLens.test": true,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#6b5c90",
+    "activityBar.background": "#6b5c90",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#b4968a",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#6b5c90",
+    "statusBar.background": "#544871",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#6b5c90",
+    "statusBarItem.remoteBackground": "#544871",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#544871",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#54487199",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#544871"
 }

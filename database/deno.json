@@ -4,9 +4,13 @@
     "start": "deno run --allow-net main.ts"
   },
   "imports": {
-    "@std/assert": "jsr:@std/assert@1"
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/async": "jsr:@std/async@^1.0.11",
+    "@std/encoding": "jsr:@std/encoding@^1.0.7",
+    "@std/expect": "jsr:@std/expect@^1.0.13",
+    "@std/streams": "jsr:@std/streams@^1.0.9"
   },
-  "workspace": ["./util", "./type", "./net"],
+  "workspace": ["util", "type", "net", "__tests__/mocks"],
   "lint": {
     "include": ["src/"],
     "exclude": ["**/*.md"],
@@ -22,7 +26,6 @@
         "no-await-in-loop",
         "no-boolean-literal-for-arguments",
         "no-eval",
-        "no-external-import",
         "no-inferrable-types",
         "no-non-null-asserted-optional-chain",
         "no-non-null-assertion",
