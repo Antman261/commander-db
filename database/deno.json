@@ -10,9 +10,8 @@
     "@std/expect": "jsr:@std/expect@^1.0.13",
     "@std/streams": "jsr:@std/streams@^1.0.9"
   },
-  "workspace": ["util", "type", "net", "__tests__/mocks"],
+  "workspace": ["util", "type", "net", "__tests__/mocks", "execution/lifecycle"],
   "lint": {
-    "include": ["src/"],
     "exclude": ["**/*.md"],
     "rules": {
       "tags": ["recommended"],
@@ -23,7 +22,6 @@
         "explicit-function-return-type",
         "explicit-module-boundary-types",
         "guard-for-in",
-        "no-await-in-loop",
         "no-boolean-literal-for-arguments",
         "no-eval",
         "no-inferrable-types",
