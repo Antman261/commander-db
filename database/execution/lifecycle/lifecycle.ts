@@ -49,9 +49,9 @@ export class Lifecycle extends EventEmitter {
     if (this.#status === 'closing') return new Promise((resolve) => this.on('closed', resolve));
     if (this.#status !== 'running') throw new Error(`Tried to close lifecycle with status ${this.#status}`);
 
-    this.#setStatus('closing');
     Deno.removeSignalListener('SIGTERM', this.close);
     clearInterval(this.#healthCheckInterval);
+    this.#setStatus('closing');
 
     const components = this.#components.toReversed();
 

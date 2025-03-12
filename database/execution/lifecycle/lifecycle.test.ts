@@ -13,10 +13,23 @@ const createChecks = () => {
   return { checks, passCheck };
 };
 
+type EventName =
+  | 'componentStarted'
+  | 'componentRestarting'
+  | 'componentRestarted'
+  | 'componentClosing'
+  | 'componentClosed';
+type Event = `${EventName} ${string}`;
+type Events = Event[];
+
+type MakeEvent = (event: EventName) => Event;
+const makeEventFn = (name: string): MakeEvent => (event) => `${event} ${name}`;
+
 const makeComponent = (c?: Partial<Component>): Component => {
   let status: ComponentStatus = 'pending';
+  const name = c?.name ?? 'test-component';
   return {
-    name: 'test-component',
+    name,
     start: async () => await delay(1) ?? (status = 'running'),
     getStatus: async () => await delay(0) ?? status,
     close: () => delay(1),
@@ -39,6 +52,13 @@ const makeCrashingComponent = (c?: Partial<Component>, crashAt = 3): Component =
   });
 };
 
+type EventTracker = (en: EventName) => [EventName, (cn: string) => void];
+const setupEvents = (): [Events, EventTracker] => {
+  const actual: Events = [];
+  const trackActual = (e: Event) => actual.push(e);
+  return [actual, (en: EventName) => [en, (cn: string) => trackActual(makeEventFn(cn)(en))]];
+};
+
 Deno.test('LifeCycle', async ({ step }) => {
   await step('can start & close a lifecycle', async () => {
     const { checks, passCheck } = createChecks();
@@ -57,66 +77,68 @@ Deno.test('LifeCycle', async ({ step }) => {
     });
   });
   await step('start and close lifecycle components', async () => {
-    const events: string[] = [];
+    const [actual, actualEvent] = setupEvents();
     const lc = new Lifecycle();
     lc.register(makeComponent({ name: 'test-component-1' }));
     lc.register(makeComponent({ name: 'test-component-2' }));
     lc.register(makeComponent({ name: 'test-component-3' }));
-    lc.on('componentStarted', (name) => events.push(`componentStarted ${name}`));
-    lc.on('componentClosing', (name) => events.push(`componentClosing ${name}`));
-    lc.on('componentClosed', (name) => events.push(`componentClosed  ${name}`));
+
+    lc.on(...actualEvent('componentStarted'));
+    lc.on(...actualEvent('componentClosing'));
+    lc.on(...actualEvent('componentClosed'));
     await lc.start();
     await lc.close();
     await delay(2);
-    expect(events).toEqual([
+    expect(actual).toEqual([
       'componentStarted test-component-1',
       'componentStarted test-component-2',
       'componentStarted test-component-3',
       'componentClosing test-component-3',
-      'componentClosed  test-component-3',
+      'componentClosed test-component-3',
       'componentClosing test-component-2',
-      'componentClosed  test-component-2',
+      'componentClosed test-component-2',
       'componentClosing test-component-1',
-      'componentClosed  test-component-1',
+      'componentClosed test-component-1',
     ]);
   });
   await step('restarts crashed life cycle component', async () => {
-    const events: string[] = [];
+    const [actual, actualEvent] = setupEvents();
     const lc = new Lifecycle({ healthCheckIntervalMs: 1 });
+
     lc.register(makeComponent({ name: 'test-component-1' }));
     lc.register(makeComponent({ name: 'test-component-2' }));
     lc.register(makeCrashingComponent({ name: 'test-component-3' }, 2));
     lc.register(makeComponent({ name: 'test-component-4' }));
-    lc.register(makeCrashingComponent({ name: 'test-component-5' }, 4));
-    lc.on('componentStarted', (name) => events.push(`componentStarted ${name}`));
-    lc.on('componentClosing', (name) => events.push(`componentClosing ${name}`));
-    lc.on('componentClosed', (name) => events.push(`componentClosed  ${name}`));
-    lc.on('componentRestarting', (name) => events.push(`componentRestarting  ${name}`));
-    lc.on('componentRestarted', (name) => events.push(`componentRestarted  ${name}`));
+    lc.register(makeCrashingComponent({ name: 'test-component-5' }, 2));
+    lc.on(...actualEvent('componentStarted'));
+    lc.on(...actualEvent('componentClosing'));
+    lc.on(...actualEvent('componentClosed'));
+    lc.on(...actualEvent('componentRestarting'));
+    lc.on(...actualEvent('componentRestarted'));
     await lc.start();
     await delay(15);
     await lc.close();
     await delay(30);
-    expect(events).toEqual([
+    expect(actual).toEqual([
       'componentStarted test-component-1',
       'componentStarted test-component-2',
       'componentStarted test-component-3',
       'componentStarted test-component-4',
       'componentStarted test-component-5',
-      'componentRestarting  test-component-3',
-      'componentRestarted  test-component-3',
-      'componentRestarting  test-component-5',
-      'componentRestarted  test-component-5',
+      'componentRestarting test-component-3',
+      'componentRestarted test-component-3',
+      'componentRestarting test-component-5',
+      'componentRestarted test-component-5',
       'componentClosing test-component-5',
-      'componentClosed  test-component-5',
+      'componentClosed test-component-5',
       'componentClosing test-component-4',
-      'componentClosed  test-component-4',
+      'componentClosed test-component-4',
       'componentClosing test-component-3',
-      'componentClosed  test-component-3',
+      'componentClosed test-component-3',
       'componentClosing test-component-2',
-      'componentClosed  test-component-2',
+      'componentClosed test-component-2',
       'componentClosing test-component-1',
-      'componentClosed  test-component-1',
+      'componentClosed test-component-1',
     ]);
   });
 });
