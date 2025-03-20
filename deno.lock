@@ -5,7 +5,6 @@
     "jsr:@std/bytes@^1.0.5": "1.0.5",
     "jsr:@std/expect@*": "1.0.7",
     "jsr:@std/internal@^1.0.5": "1.0.5",
-    "jsr:@std/streams@^1.0.9": "1.0.9",
     "npm:@types/node@*": "22.5.4",
     "npm:bson@*": "6.10.3",
     "npm:fast-stringify@*": "2.0.0",
@@ -36,12 +35,6 @@
     },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
-    },
-    "@std/streams@1.0.9": {
-      "integrity": "a9d26b1988cdd7aa7b1f4b51e1c36c1557f3f252880fa6cc5b9f37078b1a5035",
-      "dependencies": [
-        "jsr:@std/bytes"
-      ]
     }
   },
   "npm": {
@@ -66,8 +59,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@^1.0.7",
-      "jsr:@std/streams@^1.0.9"
+      "jsr:@std/bytes@^1.0.5"
     ]
   }
 }

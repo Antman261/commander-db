@@ -42,6 +42,9 @@ Deno.test("encoding serialized values prevents new-line characters appearing in 
   expect(Buffer.from(serialized).includes(needle)).toBeFalsy();
 });
 
+/**
+ * base64 encoding increases the size significantly, in many cases, depending on the data, it erodes improvements from serializing javascript objects to binary representations. However, have come up with a simple solution to safely transmit binary javascript objects
+ */
 Deno.test("encoding serialized objects result in smaller payloads than stringify to JSON", async () => {
   // eslint-disable-next-line @typescript-eslint/no-redeclare
   interface BigInt {
@@ -62,14 +65,21 @@ Deno.test("encoding serialized objects result in smaller payloads than stringify
     isFalse: false,
     arr: [true, true, false, 10, null, false, undefined, 0, -0],
   };
-  const serializationText = serialize(testObject).toString("base64");
+  const serializationData = serialize(testObject);
+  const serializationText = serializationData.toString("base64");
   const serialized = serializationText;
   const stringifiedText = JSON.stringify(testObject);
   const stringifiedTextByteLength = Uint8Array.from(stringifiedText).byteLength;
   const encodedObjectByteLength = Uint8Array.from(serialized).byteLength;
-  console.log({ stringifiedTextByteLength, encodedObjectByteLength });
+  const serializedByteLength = serializationData.byteLength;
+
+  await Deno.writeFile("test.bdat", serializationData);
+  console.log({
+    stringifiedTextByteLength,
+    encodedObjectByteLength,
+    serializedByteLength,
+  });
   console.log({ stringifiedText });
-  console.log({ serialized });
   const deserializationText = decodeBase64(serialized);
   console.log({ serializationText });
   const deserialized = deserialize(deserializationText);
