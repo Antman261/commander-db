@@ -8,7 +8,7 @@ Deno.test('connections', async ({ step }) => {
     await client.requestCommandSubscription();
     await delay(100);
     await client.closeConnection();
-    expect(true).toEqual(true);
+    expect(true).toEqual(false);
   });
   await end();
 });

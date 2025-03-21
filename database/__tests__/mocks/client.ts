@@ -19,8 +19,10 @@ const MAX_LENGTH = 2 ** 32;
 const encodeMessageToBinary = (msg: Message) => {
   const msgData = serialize(msg);
   if (msgData.byteLength > MAX_LENGTH) throw new RangeError('Maximum message length exceeded (4GB)');
-  const [lengthBlob] = encodeVarint(msgData.byteLength, new Uint8Array(4));
-  return bytes.concat([lengthBlob, msgData]);
+  const lengthBlob = new Uint8Array(4);
+  encodeVarint(msgData.byteLength, lengthBlob);
+  const combined = bytes.concat([lengthBlob, msgData]);
+  return combined;
 };
 
 export const startClient = async () => {
