@@ -1,5 +1,6 @@
 import { startNetworkLayer } from '@db/net';
 async function startServer() {
+  console.log('db starting');
   await startNetworkLayer();
 }
 

@@ -6,7 +6,7 @@ export const setupTest = async () => {
   const dir = Deno.cwd();
   const p = dir.endsWith('database') ? dir : `${dir}/database`;
   const command = new Deno.Command(`${Deno.execPath()}`, {
-    args: ['run', '--allow-net', `${p}/main.ts`],
+    args: ['run', '--allow-net', '--inspect', `${p}/main.ts`],
     stdout: 'inherit',
     stderr: 'inherit',
   });
@@ -19,6 +19,7 @@ export const setupTest = async () => {
     Deno.exit(4);
   }
   await delay(100);
+  alert('Ready to connect?');
   return {
     client: await startClient(),
     end: async () => {

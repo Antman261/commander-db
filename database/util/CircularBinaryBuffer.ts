@@ -55,6 +55,15 @@ export class CircularBinaryBuffer {
       ? this.#writePos - this.#readPos
       : (this.#maxBytes - this.#readPos) + this.#writePos;
   }
+  #append(data: Uint8Array): void {
+    this.#dataStore.set(data, this.#writePos);
+    this.#writePos = (this.#writePos + data.byteLength) % this.#maxBytes;
+  }
+  #shift(byteLength: number): Uint8Array {
+    const result = this.#dataStore.subarray(this.#readPos, this.#readPos + byteLength);
+    this.#readPos = (this.#readPos + byteLength) % this.#maxBytes;
+    return result;
+  }
 
   /**
    * Write the provided data to the circular buffer.
@@ -63,11 +72,11 @@ export class CircularBinaryBuffer {
    */
   write(data: Uint8Array): void {
     if (data.byteLength > this.writable) throw new Error('Circular buffer out of space');
-    if (this.#untilWriteWrap === -1) return this.#dataStore.set(data, this.#writePos);
+    if (this.#untilWriteWrap === -1) return this.#append(data);
     //     w     r        w
     // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    this.#dataStore.set(data.subarray(0, this.#untilWriteWrap), this.#writePos);
-    this.#dataStore.set(data.subarray(this.#untilWriteWrap), 0);
+    this.#append(data.subarray(0, this.#untilWriteWrap));
+    this.#append(data.subarray(this.#untilWriteWrap));
     this.#writePos = (this.#writePos + data.byteLength) % this.#maxBytes;
   }
   /**
@@ -76,13 +85,13 @@ export class CircularBinaryBuffer {
    * @param markRead
    * @returns
    */
-  read(byteLength = this.readable, markRead = true): Uint8Array {
+  read(byteLength = this.readable): Uint8Array {
     if (byteLength > this.readable) throw new Error('Insufficient readable data available');
-    if (this.#untilReadWrap === -1) return this.#dataStore.subarray(this.#readPos);
+    if (this.#untilReadWrap === -1) return this.#shift(byteLength);
     const result = new Uint8Array(byteLength);
-    result.set(this.#dataStore.subarray(this.#readPos));
-    result.set(this.#dataStore.subarray(0, this.#writePos), this.#untilReadWrap);
-    if (markRead) this.#readPos = (this.#readPos + byteLength) % this.#maxBytes;
+    const bytesBeforeWrap = this.#untilReadWrap;
+    result.set(this.#shift(bytesBeforeWrap));
+    result.set(this.#shift(byteLength - bytesBeforeWrap), bytesBeforeWrap);
     return result;
   }
 }
