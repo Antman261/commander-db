@@ -34,6 +34,7 @@ export const startClient = async () => {
   conn.setNoDelay(true);
   conn.setKeepAlive(true);
   const send = (msg: Message) => conn.write(encodeMessageToBinary(msg));
+  conn.readable.pipeTo(Deno.stdout.writable);
 
   return {
     async requestCommandSubscription() {

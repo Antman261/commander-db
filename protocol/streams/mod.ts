@@ -1,1 +1,2 @@
-export * from "./BinaryDecodeStream.ts";
+export * from './BinaryDecodeStream.ts';
+export * from './BinaryEncodeStream.ts';
