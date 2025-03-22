@@ -9,7 +9,7 @@ export class CircularBinaryBuffer {
   #startPosView: Uint32Array;
   /**
    * @constructor
-   * @param maxBytes The maximum number of bytes the buffer can hold.
+   * @param maxBytes Maximum number of bytes the buffer can hold.
    */
   constructor(maxBytes: number) {
     this.#maxBytes = maxBytes;
@@ -21,20 +21,26 @@ export class CircularBinaryBuffer {
   get #writePos(): number {
     return this.#endPosView[0];
   }
-  // deno-lint-ignore explicit-function-return-type
   set #writePos(value: number) {
     this.#endPosView[0] = value;
   }
   get #readPos(): number {
     return this.#startPosView[0];
   }
-  // deno-lint-ignore explicit-function-return-type
   set #readPos(value: number) {
     this.#startPosView[0] = value;
   }
+  /**
+   * Number of writable bytes before the write cursor returns to index 0.
+   *
+   * Returns -1 if the write cursor will collide with the read cursor before the end of the buffer
+   */
   get #untilWriteWrap(): number {
-    return this.#writePos > this.#readPos ? this.#maxBytes - this.#writePos : -1;
+    return this.#writePos < this.#readPos ? -1 : this.#maxBytes - this.#writePos;
   }
+  /**
+   * Number of readable bytes before the read cursor returns to index 0.
+   */
   get #untilReadWrap(): number {
     return this.#readPos > this.#writePos ? this.#maxBytes - this.#readPos : -1;
   }
@@ -57,7 +63,7 @@ export class CircularBinaryBuffer {
   }
   #append(data: Uint8Array): void {
     this.#dataStore.set(data, this.#writePos);
-    this.#writePos = (this.#writePos + data.byteLength) % this.#maxBytes;
+    this.#writePos = (this.#writePos + data.byteLength) % (this.#maxBytes);
   }
   #shift(byteLength: number): Uint8Array {
     const result = this.#dataStore.subarray(this.#readPos, this.#readPos + byteLength);
@@ -68,30 +74,48 @@ export class CircularBinaryBuffer {
   /**
    * Write the provided data to the circular buffer.
    *
-   * Will throw if insufficient space available
+   * Throws if insufficient space available
    */
   write(data: Uint8Array): void {
     if (data.byteLength > this.writable) throw new Error('Circular buffer out of space');
     if (this.#untilWriteWrap === -1) return this.#append(data);
+    if (data.byteLength <= this.#untilWriteWrap) return this.#append(data);
     //     w     r        w
     // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    this.#append(data.subarray(0, this.#untilWriteWrap));
-    this.#append(data.subarray(this.#untilWriteWrap));
-    this.#writePos = (this.#writePos + data.byteLength) % this.#maxBytes;
+    const writeWrap = this.#untilWriteWrap;
+    this.#append(data.subarray(0, writeWrap));
+    this.#append(data.subarray(writeWrap));
   }
   /**
-   * Read from the circular buffer
-   * @param byteLength
-   * @param markRead
-   * @returns
+   * Read from the circular buffer. Once bytes are read they become writable.
+   * @param byteLength The number of bytes to read
+   * @returns A Uint8Array containing the binary data
    */
   read(byteLength = this.readable): Uint8Array {
     if (byteLength > this.readable) throw new Error('Insufficient readable data available');
-    if (this.#untilReadWrap === -1) return this.#shift(byteLength);
+    if (this.#untilReadWrap === -1) return new Uint8Array(this.#shift(byteLength));
+    if (byteLength <= this.#untilReadWrap) return new Uint8Array(this.#shift(byteLength));
     const result = new Uint8Array(byteLength);
     const bytesBeforeWrap = this.#untilReadWrap;
     result.set(this.#shift(bytesBeforeWrap));
     result.set(this.#shift(byteLength - bytesBeforeWrap), bytesBeforeWrap);
     return result;
+  }
+  toString() {
+  }
+  toValue() {
+    return this.toString();
+  }
+  get [Symbol.toStringTag]() {
+    return `{
+  maxBytes: ${this.#maxBytes}
+  writable: ${this.writable}
+  writePos: ${this.#writePos}
+  untilWriteWrap: ${this.#untilWriteWrap}
+  readable: ${this.readable}
+  readPos: ${this.#readPos}
+  untilReadWrap: ${this.#untilReadWrap}
+  data: ${this.#dataStore}
+}`;
   }
 }

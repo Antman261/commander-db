@@ -1,0 +1,4 @@
+{
+  "name": "@proto/util",
+  "exports": "./mod.ts"
+}
