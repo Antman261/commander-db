@@ -19,7 +19,7 @@ export const defaultOpt = (): Required<Opt> => ({
   maxBodyBytes: 2_097_152,
 });
 
-export const verifyOptions = (opt?: Opt): Required<Opt> => {
+export const verifyOptions = (opt: Opt | undefined): Required<Opt> => {
   const o = Object.assign(defaultOpt(), opt) as Required<Opt>;
   if (o.maxBodyBytes > 2 ** (8 * HEADER_BYTES)) {
     throw new Error('InvalidBinaryMessageConfig: Body size cannot exceed value encodable in maxHeaderBytes');

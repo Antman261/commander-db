@@ -24,6 +24,10 @@ export class UInt extends Numeric<'UInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'UInt', buffer, offset);
   }
+  /**
+   * Number of bytes to store the numeric
+   */
+  static bytes = 4;
 }
 
 export class SInt extends Numeric<'SInt'> {

@@ -16,8 +16,8 @@ export class BinaryRingBuffer {
     this.#maxBytes = maxBytes;
     this.#dataStore = new Uint8Array(maxBytes);
     const positionBuffer = new Uint8Array(8).buffer;
-    this.#writePos = new UInt(0);
-    this.#readPos = new UInt(0);
+    this.#writePos = new UInt(0, positionBuffer);
+    this.#readPos = new UInt(0, positionBuffer, 4);
   }
   /**
    * Number of writable bytes before the write cursor returns to index 0.
@@ -76,9 +76,9 @@ export class BinaryRingBuffer {
     this.#append(data.subarray(writeWrap));
   }
   /**
-   * Read from the circular buffer. Once bytes are read they become writable.
-   * @param byteLength The number of bytes to read
-   * @returns A Uint8Array containing the binary data
+   * Read from the circular buffer. Once bytes are read they become writable and cannot be read again.
+   * @param byteLength Number of bytes to read
+   * @returns Binary data in a Uint8Array
    */
   read(byteLength = this.readable): Uint8Array {
     if (byteLength > this.readable) throw new Error('Insufficient readable data available');

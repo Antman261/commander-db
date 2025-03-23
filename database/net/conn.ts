@@ -9,9 +9,10 @@ export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
     .pipeThrough(MessageResponseStream())
     .pipeThrough(BinaryEncodeStream())
     .pipeTo(conn.writable);
+  conn.write(new Uint8Array([123]));
 }
 
-export const MessageResponseStream = <Request, Response>(): TransformStream<ClientMessage, ClientMessage> =>
+export const MessageResponseStream = (): TransformStream<ClientMessage, ClientMessage> =>
   toTransformStream(async function* (src) {
     for await (const msg of src) yield await handleMessage(msg);
   });
