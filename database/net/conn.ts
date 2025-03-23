@@ -4,7 +4,7 @@ import { toTransformStream } from '@std/streams';
 
 export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
   console.log('Handling connection');
-  conn.readable
+  await conn.readable
     .pipeThrough(BinaryDecodeStream<ClientMessage>())
     .pipeThrough(MessageResponseStream())
     .pipeThrough(BinaryEncodeStream())

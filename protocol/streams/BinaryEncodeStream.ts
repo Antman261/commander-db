@@ -1,5 +1,5 @@
 import * as bytes from '@std/bytes';
-import { toTransformStream } from '@std/streams/to-transform-stream';
+import { toTransformStream } from '@std/streams';
 import { serialize } from 'node:v8';
 import { defaultOpt, HEADER_BYTES, type Opt } from './options.ts';
 

@@ -1,6 +1,6 @@
 import { toTransformStream } from '@std/streams';
 import { deserialize } from 'node:v8';
-import { CircularBinaryBuffer } from '@proto/util';
+import { BinaryRingBuffer } from '@proto/util';
 import { HEADER_BYTES, type Opt, verifyOptions } from './options.ts';
 
 export const BinaryDecodeStream = <Message>(opt?: Opt): TransformStream<
@@ -12,10 +12,9 @@ export const BinaryDecodeStream = <Message>(opt?: Opt): TransformStream<
     try {
       let dataLength = 0;
       /**
-       * The binary stream decoder allocates a fixed memory buffer memory for parsing messages.
-       * Using this circular buffer to avoid memory allocation and deallocation significantly improves performance.
+       * Using the binary stream decoder allocates a fixed memory buffer for parsing messages which improves performance by avoidpng memory allocation and deallocation.
        */
-      const binBuf = new CircularBinaryBuffer(maxBodyBytes);
+      const binBuf = new BinaryRingBuffer(maxBodyBytes);
       const isSizable = () => dataLength === 0 && binBuf.readable >= HEADER_BYTES;
       const hasDataLength = () => dataLength > 0 && binBuf.readable >= dataLength;
       const setDataLength = () => dataLength = new Uint32Array(binBuf.read(HEADER_BYTES))[0];

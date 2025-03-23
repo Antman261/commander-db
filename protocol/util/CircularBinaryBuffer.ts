@@ -1,12 +1,11 @@
 /**
- * A circular buffer providing access to data views tracking the current start position
+ * A fixed-sized ring buffer for binary data
  */
-export class CircularBinaryBuffer {
+export class BinaryRingBuffer {
   #maxBytes: number;
   #dataStore: Uint8Array;
-  #positionStore: Uint8Array;
-  #endPosView: Uint32Array;
-  #startPosView: Uint32Array;
+  #writePosStore: Uint32Array;
+  #readPosStore: Uint32Array;
   /**
    * @constructor
    * @param maxBytes Maximum number of bytes the buffer can hold.
@@ -14,21 +13,20 @@ export class CircularBinaryBuffer {
   constructor(maxBytes: number) {
     this.#maxBytes = maxBytes;
     this.#dataStore = new Uint8Array(maxBytes);
-    this.#positionStore = new Uint8Array(8);
-    this.#endPosView = new Uint32Array(this.#positionStore.buffer, 0, 1);
-    this.#startPosView = new Uint32Array(this.#positionStore.buffer, 4, 1);
+    this.#writePosStore = new Uint32Array(1);
+    this.#readPosStore = new Uint32Array(1);
   }
   get #writePos(): number {
-    return this.#endPosView[0];
+    return this.#writePosStore[0];
   }
   set #writePos(value: number) {
-    this.#endPosView[0] = value;
+    this.#writePosStore[0] = value;
   }
   get #readPos(): number {
-    return this.#startPosView[0];
+    return this.#readPosStore[0];
   }
   set #readPos(value: number) {
-    this.#startPosView[0] = value;
+    this.#readPosStore[0] = value;
   }
   /**
    * Number of writable bytes before the write cursor returns to index 0.
