@@ -1,5 +1,5 @@
 import { expect } from 'jsr:@std/expect';
-import { BinaryRingBuffer } from './CircularBinaryBuffer.ts';
+import { BinaryRingBuffer } from './BinaryRingBuffer.ts';
 
 Deno.test('CircularBinaryBuffer', async ({ step }) => {
   await step('can write a byte', () => {
