@@ -1,11 +1,13 @@
+import { UInt } from './Numeric/mod.ts';
+
 /**
  * A fixed-sized ring buffer for binary data
  */
 export class BinaryRingBuffer {
   #maxBytes: number;
   #dataStore: Uint8Array;
-  #writePosStore: Uint32Array;
-  #readPosStore: Uint32Array;
+  #writePos: UInt;
+  #readPos: UInt;
   /**
    * @constructor
    * @param maxBytes Maximum number of bytes the buffer can hold.
@@ -13,20 +15,9 @@ export class BinaryRingBuffer {
   constructor(maxBytes: number) {
     this.#maxBytes = maxBytes;
     this.#dataStore = new Uint8Array(maxBytes);
-    this.#writePosStore = new Uint32Array(1);
-    this.#readPosStore = new Uint32Array(1);
-  }
-  get #writePos(): number {
-    return this.#writePosStore[0];
-  }
-  set #writePos(value: number) {
-    this.#writePosStore[0] = value;
-  }
-  get #readPos(): number {
-    return this.#readPosStore[0];
-  }
-  set #readPos(value: number) {
-    this.#readPosStore[0] = value;
+    const positionBuffer = new Uint8Array(8).buffer;
+    this.#writePos = new UInt(0);
+    this.#readPos = new UInt(0);
   }
   /**
    * Number of writable bytes before the write cursor returns to index 0.
@@ -34,38 +25,38 @@ export class BinaryRingBuffer {
    * Returns -1 if the write cursor will collide with the read cursor before the end of the buffer
    */
   get #untilWriteWrap(): number {
-    return this.#writePos < this.#readPos ? -1 : this.#maxBytes - this.#writePos;
+    return +this.#writePos < +this.#readPos ? -1 : this.#maxBytes - +this.#writePos;
   }
   /**
    * Number of readable bytes before the read cursor returns to index 0.
    */
   get #untilReadWrap(): number {
-    return this.#readPos > this.#writePos ? this.#maxBytes - this.#readPos : -1;
+    return +this.#readPos > +this.#writePos ? this.#maxBytes - +this.#readPos : -1;
   }
   /**
    * Number of bytes available for writing
    */
   get writable(): number {
-    return this.#writePos > this.#readPos
-      ? (this.#maxBytes - this.#writePos) + this.#readPos
-      : (this.#writePos === this.#readPos ? this.#maxBytes : this.#readPos - this.#writePos);
+    return +this.#writePos > +this.#readPos
+      ? (this.#maxBytes - +this.#writePos) + +this.#readPos
+      : (+this.#writePos === +this.#readPos ? this.#maxBytes : +this.#readPos - +this.#writePos);
   }
 
   /**
    * Number of bytes available for reading
    */
   get readable(): number {
-    return this.#writePos >= this.#readPos
-      ? this.#writePos - this.#readPos
-      : (this.#maxBytes - this.#readPos) + this.#writePos;
+    return +this.#writePos >= +this.#readPos
+      ? +this.#writePos - +this.#readPos
+      : (this.#maxBytes - +this.#readPos) + +this.#writePos;
   }
   #append(data: Uint8Array): void {
-    this.#dataStore.set(data, this.#writePos);
-    this.#writePos = (this.#writePos + data.byteLength) % (this.#maxBytes);
+    this.#dataStore.set(data, +this.#writePos);
+    this.#writePos.value = (+this.#writePos + data.byteLength) % (this.#maxBytes);
   }
   #shift(byteLength: number): Uint8Array {
-    const result = this.#dataStore.subarray(this.#readPos, this.#readPos + byteLength);
-    this.#readPos = (this.#readPos + byteLength) % this.#maxBytes;
+    const result = this.#dataStore.subarray(+this.#readPos, +this.#readPos + byteLength);
+    this.#readPos.value = (+this.#readPos + byteLength) % this.#maxBytes;
     return result;
   }
 

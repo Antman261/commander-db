@@ -2,13 +2,13 @@ import { expect } from 'jsr:@std/expect';
 import { BinaryRingBuffer } from './CircularBinaryBuffer.ts';
 
 Deno.test('CircularBinaryBuffer', async ({ step }) => {
-  await step('can write a byte', async () => {
+  await step('can write a byte', () => {
     const buf = new BinaryRingBuffer(128);
     expect(buf.writable).toEqual(128);
     buf.write(new Uint8Array([5]));
     expect(buf.writable).toEqual(127);
   });
-  await step('can read a byte', async () => {
+  await step('can read a byte', () => {
     const buf = new BinaryRingBuffer(128);
     expect(buf.readable, 'unwritten').toEqual(0);
     buf.write(new Uint8Array([5]));
@@ -16,14 +16,14 @@ Deno.test('CircularBinaryBuffer', async ({ step }) => {
     expect(buf.read(1)[0], 'result').toEqual(5);
     expect(buf.readable, 'readable after read').toEqual(0);
   });
-  await step('can read a subset of data', async () => {
+  await step('can read a subset of data', () => {
     const buf = new BinaryRingBuffer(128);
     buf.write(new Uint8Array([5, 3, 7]));
     expect(buf.writable).toEqual(125);
     expect(buf.readable).toEqual(3);
     expect([...buf.read(2).values()], 'result').toEqual([5, 3]);
   });
-  await step('regains writable bytes after reading ', async () => {
+  await step('regains writable bytes after reading ', () => {
     const buf = new BinaryRingBuffer(128);
     buf.write(new Uint8Array([5, 3, 7, 3]));
     expect(buf.writable).toEqual(124);
@@ -35,7 +35,7 @@ Deno.test('CircularBinaryBuffer', async ({ step }) => {
     expect(buf.readable).toEqual(0);
     expect(buf.writable).toEqual(128);
   });
-  await step('can read & write beyond wraparound', async () => {
+  await step('can read & write beyond wraparound', () => {
     const buf = new BinaryRingBuffer(64);
     const data = new Uint8Array(32);
     new Uint32Array(data.buffer)[0] = 123456;

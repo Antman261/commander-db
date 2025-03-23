@@ -33,10 +33,10 @@ export class Numeric<T extends keyof StorageTypes> {
   get buffer(): ArrayBuffer {
     return this._value.buffer;
   }
-  get value(): number {
+  get value() {
     return this._value[0];
   }
-  set value(v: number) {
+  set value(v: number | bigint) {
     this._value[0] = v;
   }
   valueOf() {
