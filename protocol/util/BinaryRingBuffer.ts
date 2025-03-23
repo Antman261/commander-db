@@ -104,7 +104,6 @@ export class BinaryRingBuffer {
   readable: ${this.readable}
   readPos: ${this.#readPos}
   untilReadWrap: ${this.#untilReadWrap}
-  data: ${this.#dataStore}
 }`;
   }
 }

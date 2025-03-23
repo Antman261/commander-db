@@ -1,7 +1,0 @@
-{
-    "name": "@db/mocks",
-  "exports": "./mod.ts",
-  "imports": {
-    "@ferrous-db/client": "file:../../../client"
-  }
-}

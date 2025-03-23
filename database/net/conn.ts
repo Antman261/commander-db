@@ -1,18 +1,53 @@
-import { ClientMessage, handleMessage } from './msg.ts';
+import { ClientMessage } from './msg.ts';
 import { BinaryDecodeStream, BinaryEncodeStream } from '@fe-db/proto';
-import { toTransformStream } from '@std/streams';
+import { delay } from '@std/async';
 
 export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
-  console.log('Handling connection');
+  const id = crypto.randomUUID();
+  console.log('Handling connection', id);
   await conn.readable
-    .pipeThrough(BinaryDecodeStream<ClientMessage>())
-    .pipeThrough(MessageResponseStream())
+    .pipeThrough(new BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
+    .pipeThrough(new MessageResponseStream(id))
     .pipeThrough(BinaryEncodeStream())
     .pipeTo(conn.writable);
-  conn.write(new Uint8Array([123]));
+  console.log('Closed connection:', id);
 }
 
-export const MessageResponseStream = (): TransformStream<ClientMessage, ClientMessage> =>
-  toTransformStream(async function* (src) {
-    for await (const msg of src) yield await handleMessage(msg);
-  });
+type CommandSubscriber = { id: string; dispatchCommand(cmd: ClientMessage): void };
+const commandSubscribers: Record<string, CommandSubscriber> = {};
+const registerCommandSubscriber = (reg: CommandSubscriber) => {
+  commandSubscribers[reg.id] = reg;
+};
+const deregisterCommandSubscriber = (id: CommandSubscriber['id']) => {
+  delete commandSubscribers[id];
+};
+class MessageResponseStream extends TransformStream<ClientMessage, ClientMessage> {
+  constructor(id: string) {
+    super({
+      start() {},
+      async transform(msg, controller) {
+        switch (msg.k) {
+          case 'REQ_SUB':
+            controller.enqueue({ k: 'ACK_SUB' });
+            registerCommandSubscriber({
+              id,
+              dispatchCommand: controller.enqueue,
+            });
+            await delay(2);
+            controller.enqueue({ k: 'COM', cmd: { name: 'hello!' } });
+            break;
+          case 'UNSUB':
+            deregisterCommandSubscriber(id);
+            controller.enqueue({ k: 'UNSUB_ACK' });
+            break;
+          case 'EXIT':
+            controller.terminate();
+            break;
+          default:
+            controller.enqueue({ k: 'ACK' });
+            break;
+        }
+      },
+    });
+  }
+}

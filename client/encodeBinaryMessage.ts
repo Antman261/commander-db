@@ -7,6 +7,7 @@ export const encodeBinaryMessage = (msg: Message) => {
   const msgData = serialize(msg);
   if (msgData.byteLength > MAX_LENGTH) throw new RangeError('Maximum message length exceeded (4GB)');
   const dataBuffer = new Uint8Array(msgData.byteLength + UInt.bytes);
+  dataBuffer.set(new UInt(msgData.byteLength).toBinary());
   dataBuffer.set(msgData, UInt.bytes);
   return dataBuffer;
   //   return new Uint8Array([

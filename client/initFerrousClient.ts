@@ -1,15 +1,15 @@
+import { delay } from '@std/async';
 import { BinaryDecodeStream } from '@fe-db/proto';
 import type { Message } from './commonTypes.ts';
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';
 
-type Func = (...args: never[]) => unknown;
 type Command = Record<string, unknown>;
 type Event = Record<string, unknown>;
-type CommandHandler = (command: Command) => Promise<Event[]>;
-type CommandMessage = { k: 'COM'; command: Command } | { k: 'UNSUB_ACK' };
+type CommandHandler = (command: Command) => Promise<Event[] | Error | string>;
+type CommandMessage = { k: 'COM'; cmd: Command } | { k: 'UNSUB_ACK' };
 
-export const initFerrousClient = (opt: ConnectionConfig) => {
+export const initFerrousClient = (opt?: ConnectionConfig) => {
   const { hostname, port } = verifyConfig(opt);
   const connect = async () => {
     const connection = await Deno.connect({
@@ -23,9 +23,8 @@ export const initFerrousClient = (opt: ConnectionConfig) => {
       connection,
       async close() {
         await send({ k: 'EXIT' });
-        await connection.closeWrite();
+        await delay(5);
         connection.close();
-        connection.unref();
       },
       send,
     };
@@ -33,22 +32,24 @@ export const initFerrousClient = (opt: ConnectionConfig) => {
   return {
     async subscribeToCommands(onCommand: CommandHandler, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<CommandMessage>());
-      (async () => {
+      const commandStream = connection.readable.pipeThrough(new BinaryDecodeStream<CommandMessage>());
+      const commandProcessingLoop = (async () => {
         for await (const msg of commandStream) {
           if (msg.k === 'UNSUB_ACK') {
             await close();
             break;
           }
+          if (msg.k === 'COM') {
+            await send({ k: 'COM_RES', res: await onCommand(msg.cmd) });
+          }
           // todo: add open telemetry
-          await send({ k: 'COM_RES', evs: await onCommand(msg.command) });
         }
       })();
       await send({ k: 'REQ_SUB', ags: aggregates });
       return {
         assignment: 'CommandSubscription',
         parameters: aggregates,
-        unsubscribe: () => send({ k: 'UNSUB' }),
+        unsubscribe: () => Promise.allSettled([send({ k: 'UNSUB' }), commandProcessingLoop]),
       };
     },
   };
