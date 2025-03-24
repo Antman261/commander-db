@@ -3,14 +3,18 @@ import { BinaryDecodeStream, BinaryEncodeStream } from '@fe-db/proto';
 import { delay } from '@std/async';
 
 export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
-  const id = crypto.randomUUID();
-  console.log('Handling connection', id);
-  await conn.readable
-    .pipeThrough(new BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
-    .pipeThrough(new MessageResponseStream(id))
-    .pipeThrough(BinaryEncodeStream())
-    .pipeTo(conn.writable);
-  console.log('Closed connection:', id);
+  try {
+    const id = crypto.randomUUID();
+    console.log('Handling connection', id);
+    await conn.readable
+      .pipeThrough(new BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
+      .pipeThrough(new MessageResponseStream(id))
+      .pipeThrough(BinaryEncodeStream())
+      .pipeTo(conn.writable);
+    console.log('Closed connection:', id);
+  } catch (error) {
+    console.log('connection error:', error);
+  }
 }
 
 type CommandSubscriber = { id: string; dispatchCommand(cmd: ClientMessage): void };
@@ -26,26 +30,30 @@ class MessageResponseStream extends TransformStream<ClientMessage, ClientMessage
     super({
       start() {},
       async transform(msg, controller) {
-        switch (msg.k) {
-          case 'REQ_SUB':
-            controller.enqueue({ k: 'ACK_SUB' });
-            registerCommandSubscriber({
-              id,
-              dispatchCommand: controller.enqueue,
-            });
-            await delay(2);
-            controller.enqueue({ k: 'COM', cmd: { name: 'hello!' } });
-            break;
-          case 'UNSUB':
-            deregisterCommandSubscriber(id);
-            controller.enqueue({ k: 'UNSUB_ACK' });
-            break;
-          case 'EXIT':
-            controller.terminate();
-            break;
-          default:
-            controller.enqueue({ k: 'ACK' });
-            break;
+        try {
+          switch (msg.k) {
+            case 'REQ_SUB':
+              controller.enqueue({ k: 'ACK_SUB' });
+              registerCommandSubscriber({
+                id,
+                dispatchCommand: controller.enqueue,
+              });
+              await delay(2);
+              controller.enqueue({ k: 'COM', cmd: { name: 'hello!' } });
+              break;
+            case 'UNSUB':
+              deregisterCommandSubscriber(id);
+              controller.enqueue({ k: 'UNSUB_ACK' });
+              break;
+            case 'EXIT':
+              controller.terminate();
+              break;
+            default:
+              controller.enqueue({ k: 'ACK' });
+              break;
+          }
+        } catch (err) {
+          console.log('err:', err);
         }
       },
     });

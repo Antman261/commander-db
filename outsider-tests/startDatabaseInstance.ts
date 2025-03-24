@@ -1,4 +1,5 @@
 // deno-lint-ignore-file explicit-module-boundary-types
+import { TextLineStream } from 'jsr:@std/streams@^1.0.9';
 import { delay } from 'jsr:@std/async';
 
 type Opt = {
@@ -24,11 +25,23 @@ export const startDatabaseInstance = async (opt?: Opt) => {
   const path = dir.endsWith('database') ? dir : `../database`;
 
   args.push(`${path}/main.ts`);
-  const options = { args, stdout: 'inherit', stderr: 'inherit' } as const;
+  const options = { args, stdout: 'piped', stderr: 'piped' } as const;
   const command = new Deno.Command(Deno.execPath(), options);
   let child: Deno.ChildProcess;
+  let stderrPromise;
+  let stdoutPromise;
   try {
     child = command.spawn();
+    stderrPromise = (async () => {
+      for await (
+        const logLine of child.stderr.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
+      ) console.error(logLine);
+    })();
+    stdoutPromise = (async () => {
+      for await (
+        const logLine of child.stdout.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
+      ) console.log(logLine);
+    })();
     child.ref();
   } catch (error) {
     console.error('Error while running the file: ', error);
@@ -39,6 +52,7 @@ export const startDatabaseInstance = async (opt?: Opt) => {
   return {
     end: async () => {
       child.kill();
+      await Promise.all([stderrPromise, stdoutPromise]);
       await child.status;
     },
   };
