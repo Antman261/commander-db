@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events';
 export type ComponentStatus = 'pending' | 'running' | 'crashed';
 type Opt = { healthCheckIntervalMs: number };
 type Options = Partial<Opt>;
+const statuses = ['pending', 'starting', 'running', 'closing', 'closed'] as const;
 type Status = 'pending' | 'starting' | 'running' | 'closing' | 'closed';
 
 export type Component = {
@@ -14,8 +15,22 @@ export type Component = {
 };
 
 const defaultOptions = { healthCheckIntervalMs: 600 };
-
-export class Lifecycle extends EventEmitter {
+const componentEvents = [
+  'componentStarted',
+  'componentClosing',
+  'componentClosed',
+  'componentRestarting',
+  'componentRestarted',
+] as const;
+type EventMap = Record<Status | 'healthChecked', []> & {
+  componentStarted: [string];
+  componentClosing: [string];
+  componentClosed: [string];
+  componentRestarting: [string];
+  componentRestarted: [string];
+};
+export class Lifecycle {
+  #emitter = new EventEmitter<EventMap>();
   #status: Status;
   #components: Component[];
   #healthCheckInterval: number;
@@ -23,8 +38,19 @@ export class Lifecycle extends EventEmitter {
     this.#status = v;
     this.emit(v);
   }
+  emit(event: keyof EventMap, name?: string): void {
+    // @ts-expect-error idk
+    this.#emitter.emit(event, name);
+  }
+  on(event: keyof EventMap, cb: (name?: string) => unknown): void {
+    this.#emitter.on(event, cb);
+  }
+  all(cb: (event: keyof EventMap, name?: string) => unknown): void {
+    [...statuses, ...componentEvents].forEach((event) =>
+      this.#emitter.on(event, (name) => name ? cb(event, name) : cb(event))
+    );
+  }
   constructor(opt: Options = defaultOptions) {
-    super();
     const { healthCheckIntervalMs } = { ...defaultOptions, ...opt };
     this.#status = 'pending';
     this.#components = [];
@@ -37,16 +63,16 @@ export class Lifecycle extends EventEmitter {
     if (this.#status !== 'pending') throw new Error('Cannot register components after lifecycle started');
     this.#components.push(component);
   }
-  public async start(): Promise<void> {
+  public start = async (): Promise<void> => {
     this.#setStatus('starting');
     for (const component of this.#components) {
       await this.startComponent(component);
     }
     this.#setStatus('running');
-  }
+  };
 
-  public async close(): Promise<void> {
-    if (this.#status === 'closing') return new Promise((resolve) => this.on('closed', resolve));
+  public close = async (): Promise<void> => {
+    if (this.#status === 'closing') return new Promise((resolve) => this.on('closed', () => resolve()));
     if (this.#status !== 'running') throw new Error(`Tried to close lifecycle with status ${this.#status}`);
 
     Deno.removeSignalListener('SIGTERM', this.close);
@@ -58,7 +84,8 @@ export class Lifecycle extends EventEmitter {
     for (const component of components) await this.#closeComponent(component);
 
     this.#setStatus('closed');
-  }
+    Deno.exit(0);
+  };
   private async startComponent(component: Component): Promise<void> {
     await component.start();
     this.emit('componentStarted', component.name);

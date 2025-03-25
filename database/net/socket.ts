@@ -1,36 +1,44 @@
 import { Component } from '@db/lifecycle';
+import { RingBuffer } from '@db/utl';
 import { handleConnection } from './conn.ts';
 
 let listener: Deno.TcpListener;
-const connections: Promise<void>[] = [];
-let status: 'RUNNING' | 'CLOSING' | 'CLOSED' = 'RUNNING';
+const connections = new RingBuffer({ size: 500 }); // todo: determine number of connections based on available memory
+let status: 'pending' | 'running' | 'crashed' = 'pending';
 let mainLoopPromise: Promise<void>;
 
 function openSocketServer(): void {
   if (listener) return;
-  console.log('ConnectionManager: Starting...');
   listener = Deno.listen({
     hostname: '127.0.0.1',
     port: 8092,
     transport: 'tcp',
   });
-  mainLoopPromise = (async () => {
-    while (status === 'RUNNING') {
-      const conn = await listener.accept();
-      connections.push(handleConnection(conn));
+  status = 'running';
+  (async () => {
+    for await (const conn of listener) {
+      connections.add(conn);
+      conn.ref();
+      handleConnection(conn).finally(() => connections.remove(conn));
     }
   })();
+
+  // mainLoopPromise = (async () => {
+  //   while (status === 'running') {
+  //     const conn = await listener.accept();
+  //     connections.push(handleConnection(conn));
+  //   }
+  // })();
 }
 
 export const connectionManager: Component = {
-  async start() {
-    await openSocketServer();
+  name: 'connectionManager',
+  start() {
+    openSocketServer();
+    return Promise.resolve();
   },
   async close() {
-    status = 'CLOSING';
-
-    await Promise.all(connections.concat(mainLoopPromise));
-    status = 'CLOSED';
+    await Promise.all(connections.values());
   },
   getStatus() {
     return Promise.resolve(status);

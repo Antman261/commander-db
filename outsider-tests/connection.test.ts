@@ -21,7 +21,6 @@ Deno.test('basic connection', async ({ step }) => {
         const receivedCommand = await promise;
         expect(receivedCommand).toEqual({ name: 'hello!' });
         await unsubscribe();
-        // await delay(50);
         await end();
         await delay(50);
       },

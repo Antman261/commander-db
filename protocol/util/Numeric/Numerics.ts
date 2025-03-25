@@ -35,14 +35,14 @@ export class SInt extends Numeric<'SInt'> {
     super(num, 'SInt', buffer, offset);
   }
 }
-export class UBigInt extends Numeric<'UBigInt'> {
-  constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
-    super(num, 'UBigInt', buffer, offset);
-  }
-}
+// export class UBigInt extends Numeric<'UBigInt'> {
+//   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
+//     super(num, 'UBigInt', buffer, offset);
+//   }
+// }
 
-export class SBigInt extends Numeric<'SBigInt'> {
-  constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
-    super(num, 'SBigInt', buffer, offset);
-  }
-}
+// export class SBigInt extends Numeric<'SBigInt'> {
+//   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
+//     super(num, 'SBigInt', buffer, offset);
+//   }
+// }

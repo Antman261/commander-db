@@ -28,16 +28,14 @@ export const startDatabaseInstance = async (opt?: Opt) => {
   const options = { args, stdout: 'piped', stderr: 'piped' } as const;
   const command = new Deno.Command(Deno.execPath(), options);
   let child: Deno.ChildProcess;
-  let stderrPromise;
-  let stdoutPromise;
   try {
     child = command.spawn();
-    stderrPromise = (async () => {
+    (async () => {
       for await (
         const logLine of child.stderr.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
       ) console.error(logLine);
     })();
-    stdoutPromise = (async () => {
+    (async () => {
       for await (
         const logLine of child.stdout.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
       ) console.log(logLine);
@@ -52,7 +50,7 @@ export const startDatabaseInstance = async (opt?: Opt) => {
   return {
     end: async () => {
       child.kill();
-      await Promise.all([stderrPromise, stdoutPromise]);
+      await delay(10);
       await child.status;
     },
   };

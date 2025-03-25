@@ -32,7 +32,7 @@ export const initFerrousClient = (opt?: ConnectionConfig) => {
   return {
     async subscribeToCommands(onCommand: CommandHandler, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(new BinaryDecodeStream<CommandMessage>());
+      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<CommandMessage>());
       const commandProcessingLoop = (async () => {
         for await (const msg of commandStream) {
           if (msg.k === 'UNSUB_ACK') {

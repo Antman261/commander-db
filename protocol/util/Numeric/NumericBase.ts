@@ -5,8 +5,9 @@ const STORAGE_TYPES = {
   SSmallInt: Int16Array,
   UInt: Uint32Array,
   SInt: Int32Array,
-  UBigInt: BigUint64Array,
-  SBigInt: BigInt64Array,
+  // todo: bigints better to handle separately
+  // UBigInt: BigUint64Array,
+  // SBigInt: BigInt64Array,
 } as const;
 
 type StorageTypes = typeof STORAGE_TYPES;
@@ -36,7 +37,10 @@ export class Numeric<T extends keyof StorageTypes> {
   get value() {
     return this._value[0];
   }
-  set value(v: number | bigint) {
+  set value(v: number) {
+    this._value[0] = v;
+  }
+  set(v: number) {
     this._value[0] = v;
   }
   valueOf() {
@@ -47,6 +51,9 @@ export class Numeric<T extends keyof StorageTypes> {
       return this._value[0];
     }
     return this._value[0];
+  }
+  setViaBinary(buf: Uint8Array): void {
+    this._value[0] = new Uint32Array(this.buffer, buf.byteOffset, buf.byteLength / this.size)[0];
   }
   toBinary() {
     return new Uint8Array(this._value.buffer, 0, this.size);

@@ -6,8 +6,9 @@ export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
   try {
     const id = crypto.randomUUID();
     console.log('Handling connection', id);
+    // await authenticateClientConnection(conn)
     await conn.readable
-      .pipeThrough(new BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
+      .pipeThrough(BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
       .pipeThrough(new MessageResponseStream(id))
       .pipeThrough(BinaryEncodeStream())
       .pipeTo(conn.writable);
