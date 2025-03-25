@@ -30,9 +30,7 @@ export const BinaryDecodeStream = <Message>(
            */
           if (isSizable()) setMsgLength();
           if (hasMsgLength()) {
-            const msg = decodeMsg();
-            console.log('yielding', msg);
-            yield msg;
+            yield decodeMsg();
             msgLength = 0;
           }
         }

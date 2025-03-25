@@ -39,7 +39,7 @@ class MessageResponseStream extends TransformStream<ClientMessage, ClientMessage
                 id,
                 dispatchCommand: controller.enqueue,
               });
-              await delay(2);
+              await delay(0);
               controller.enqueue({ k: 'COM', cmd: { name: 'hello!' } });
               break;
             case 'UNSUB':

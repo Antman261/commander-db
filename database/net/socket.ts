@@ -5,7 +5,6 @@ import { handleConnection } from './conn.ts';
 let listener: Deno.TcpListener;
 const connections = new RingBuffer({ size: 500 }); // todo: determine number of connections based on available memory
 let status: 'pending' | 'running' | 'crashed' = 'pending';
-let mainLoopPromise: Promise<void>;
 
 function openSocketServer(): void {
   if (listener) return;
@@ -22,13 +21,6 @@ function openSocketServer(): void {
       handleConnection(conn).finally(() => connections.remove(conn));
     }
   })();
-
-  // mainLoopPromise = (async () => {
-  //   while (status === 'running') {
-  //     const conn = await listener.accept();
-  //     connections.push(handleConnection(conn));
-  //   }
-  // })();
 }
 
 export const connectionManager: Component = {
