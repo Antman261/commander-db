@@ -1,0 +1,16 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:pure-rand@^7.0.1": "7.0.1"
+  },
+  "npm": {
+    "pure-rand@7.0.1": {
+      "integrity": "sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:pure-rand@^7.0.1"
+    ]
+  }
+}

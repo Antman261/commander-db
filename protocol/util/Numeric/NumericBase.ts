@@ -17,7 +17,6 @@ export class Numeric<T extends keyof StorageTypes> {
   constructor(num: number, storageType: T, buffer?: ArrayBuffer, offset: number = 0) {
     const storeType = STORAGE_TYPES[storageType];
     buffer
-      // @ts-expect-error types are messed up with TypedArray constructors
       ? this._value = new storeType(buffer, offset, 1) as InstanceType<StorageTypes[T]>
       : this._value = new storeType(1) as InstanceType<StorageTypes[T]>;
     this._value[0] = num;

@@ -1,5 +1,5 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@std/assert@1": "1.0.8",
     "jsr:@std/assert@^1.0.11": "1.0.11",
@@ -13,7 +13,8 @@
     "jsr:@std/expect@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/streams@^1.0.9": "1.0.9",
-    "npm:@types/node@*": "22.10.2"
+    "npm:@types/node@*": "22.10.2",
+    "npm:pure-rand@^7.0.1": "7.0.1"
   },
   "jsr": {
     "@std/assert@1.0.8": {
@@ -64,6 +65,9 @@
         "undici-types"
       ]
     },
+    "pure-rand@7.0.1": {
+      "integrity": "sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ=="
+    },
     "undici-types@6.20.0": {
       "integrity": "sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg=="
     }
@@ -75,7 +79,8 @@
       "jsr:@std/bytes@^1.0.5",
       "jsr:@std/encoding@^1.0.7",
       "jsr:@std/expect@^1.0.13",
-      "jsr:@std/streams@^1.0.9"
+      "jsr:@std/streams@^1.0.9",
+      "npm:pure-rand@^7.0.1"
     ]
   }
 }

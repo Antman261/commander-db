@@ -1,0 +1,10 @@
+{
+    "name": "@sim/env",
+    "exports": {
+        ".": "./mod.ts",
+        "./random": "./random.ts"
+    },
+    "imports": {
+        "pure-rand": "npm:pure-rand@^7.0.1"
+    }
+}

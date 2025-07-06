@@ -14,7 +14,7 @@ Deno.test('basic connection', async ({ step }) => {
       async () => {
         const { promise, resolve } = Promise.withResolvers();
         const { end } = await startDatabaseInstance();
-        const { subscribeToCommands } = await initFerrousClient();
+        const { startCommandSubscription: subscribeToCommands } = await initFerrousClient();
         const { unsubscribe } = await subscribeToCommands(async (cmd: any): Promise<any[]> =>
           resolve(cmd) ?? []
         );
@@ -38,7 +38,7 @@ Deno.test(
       const events: string[] = [];
 
       const subPromises = Array.from({ length: 50 }).map(async (_, idx) => {
-        const sub = await client.subscribeToCommands((cmd: any): Promise<any[]> => {
+        const sub = await client.startCommandSubscription((cmd: any): Promise<any[]> => {
           events.push(`test-client${idx}: command received ${JSON.stringify(cmd)}`);
           return Promise.resolve([]);
         });
