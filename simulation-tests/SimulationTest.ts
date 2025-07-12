@@ -16,4 +16,11 @@ export class SimulationTest {
       this.#config.clients.map(startClientInstance),
     );
   }
+  async cleanup() {
+    await Promise.all(
+      this.databaseInstances.map((db) => db.end()).concat(this.clientInstances.map((client) =>
+        client.app.end()
+      )),
+    );
+  }
 }
