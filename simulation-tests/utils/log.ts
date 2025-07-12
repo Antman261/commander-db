@@ -13,3 +13,5 @@ export const makeLogger = (kind: Kind, id?: string | number) => {
     error: (...args: unknown[]) => console.error(prefix, ...args),
   });
 };
+
+export const simLog = makeLogger('simulation');

@@ -1,35 +1,33 @@
 // deno-lint-ignore-file explicit-module-boundary-types
 import { delay } from 'jsr:@std/async';
 import { badSeed } from '@sim/env/random';
-import { makeLogger } from '../log.ts';
+import { simLog } from '../log.ts';
 import { initAppInstance } from './AppInstance.ts';
+import { toDenoArgs } from './basicArgs.ts';
 
-type Opt = { debug?: boolean; otel?: boolean; seed?: number };
+export type DatabaseConfig = { debug?: boolean; otel?: boolean; seed?: number };
 
-const defaultOpt = (): Required<Opt> => ({ debug: false, otel: false, seed: badSeed() });
+export const defaultDatabaseConfig = (): Required<DatabaseConfig> => ({
+  debug: false,
+  otel: false,
+  seed: badSeed(),
+});
 
-export const verifyOptions = (opt: Opt | undefined): Required<Opt> =>
-  Object.assign(defaultOpt(), opt) as Required<Opt>;
+const verifyOptions = (opt: DatabaseConfig | undefined): Required<DatabaseConfig> =>
+  Object.assign(defaultDatabaseConfig(), opt) as Required<DatabaseConfig>;
 
-export const startDatabaseInstance = async (opt?: Opt) => {
-  const log = makeLogger('simulation');
-  const { debug, otel, seed } = verifyOptions(opt);
-  const args = ['run', '--allow-net'];
-  debug && args.push('--inspect');
-  otel && args.push('--unstable-otel');
+export const startDatabaseInstance = async (opt?: DatabaseConfig) => {
+  const { debug, seed } = verifyOptions(opt);
+  const args = toDenoArgs(opt);
 
   const dir = Deno.cwd();
   const path = dir.endsWith('database') ? dir : `../database`;
 
   args.push(`${path}/main.ts`, `--sim-seed=${seed}`);
-  log(`Starting database with cmd: deno ${args.join(' ')}`);
+  simLog(`Starting database with cmd: deno ${args.join(' ')}`);
 
-  const command = toPipedCommand(Deno.execPath(), args);
-  const appInstance = initAppInstance(command, 'database');
+  const appInstance = initAppInstance(args, 'database');
 
   debug ? alert('Ready to connect?') : await delay(100);
   return appInstance;
 };
-
-const toPipedCommand = (path: string, args: string[]) =>
-  new Deno.Command(path, { args, stdout: 'piped', stderr: 'piped' });

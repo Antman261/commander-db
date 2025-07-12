@@ -2,16 +2,20 @@ import { TextLineStream } from 'jsr:@std/streams@^1.0.9/text-line-stream';
 import { Kind } from './Kind.ts';
 import { makeLogger } from '../log.ts';
 import { delay } from '@std/async/delay';
+import { releasePort, requestPort } from './portManager.ts';
 
 export type AppInstance = {
-  status: 'starting' | 'running' | 'exited';
+  port: number;
+  readonly status: 'starting' | 'running' | 'exited';
   process: Deno.ChildProcess;
   end(): Promise<void>;
 };
 
-export const initAppInstance = (command: Deno.Command, kind: Kind): AppInstance => {
+export const initAppInstance = (args: string[], kind: Kind): AppInstance => {
   try {
-    const process = command.spawn();
+    const port = requestPort();
+    args.push(`--port=${port}`);
+    const process = toPipedDeno(args).spawn();
     const dbLog = makeLogger(kind, process.pid);
     (async () => {
       for await (
@@ -28,10 +32,13 @@ export const initAppInstance = (command: Deno.Command, kind: Kind): AppInstance 
     return {
       process,
       status,
+      port,
       async end() {
         process.kill();
+
         await delay(10);
         await process.status;
+        releasePort(port);
         status = 'exited';
       },
     };
@@ -40,3 +47,6 @@ export const initAppInstance = (command: Deno.Command, kind: Kind): AppInstance 
     Deno.exit(4);
   }
 };
+
+const toPipedDeno = (args: string[]) =>
+  new Deno.Command(Deno.execPath(), { args, stdout: 'piped', stderr: 'piped' });

@@ -1,8 +1,8 @@
 import { defaultConfig, SimulationTestConfig } from './testConfig.ts';
-import { AppInstance, startClientInstance, startDatabaseInstance } from './utils/process';
+import { AppInstance, ClientApp, startClientInstance, startDatabaseInstance } from './utils/process/index.ts';
 
 export class SimulationTest {
-  clientInstances: AppInstance[] = [];
+  clientInstances: ClientApp[] = [];
   databaseInstances: AppInstance[] = [];
   #config: SimulationTestConfig;
   constructor(config = defaultConfig()) {

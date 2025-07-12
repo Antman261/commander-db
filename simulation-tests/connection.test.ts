@@ -13,7 +13,7 @@ Deno.test('basic connection', async ({ step }) => {
       async () => {
         const { promise, handler } = makeCommandSpy();
         const db = await startDatabaseInstance();
-        const { startCommandSubscription } = await initClient();
+        const { startCommandSubscription } = await initClient({ port: db.port });
         const { unsubscribe } = await startCommandSubscription(handler);
         const receivedCommand = await promise;
         expect(receivedCommand).toEqual({ name: 'hello!' });
@@ -30,7 +30,7 @@ Deno.test(
   withDeadline(
     async () => {
       const db = await startDatabaseInstance();
-      const client = await initClient();
+      const client = await initClient({ port: db.port });
       const events: string[] = [];
 
       const subPromises = Array.from({ length: 50 }).map(async (_, idx) => {
