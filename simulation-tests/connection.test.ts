@@ -13,7 +13,7 @@ Deno.test('basic connection', async ({ step }) => {
     withDeadline(
       async () => {
         const { promise, resolve } = Promise.withResolvers();
-        const { end } = await startDatabaseInstance();
+        const db = await startDatabaseInstance();
         const { startCommandSubscription: subscribeToCommands } = await initFerrousClient();
         const { unsubscribe } = await subscribeToCommands(async (cmd: any): Promise<any[]> =>
           resolve(cmd) ?? []
@@ -21,8 +21,7 @@ Deno.test('basic connection', async ({ step }) => {
         const receivedCommand = await promise;
         expect(receivedCommand).toEqual({ name: 'hello!' });
         await unsubscribe();
-        await end();
-        await delay(50);
+        await db.end();
       },
       2000,
     ),
@@ -30,10 +29,10 @@ Deno.test('basic connection', async ({ step }) => {
 });
 
 Deno.test(
-  'multiple connections', // connections are currently handled sequentially, might use https://jsr.io/@std/async/1.0.11/pool.ts
+  'multiple connections',
   withDeadline(
     async () => {
-      const { end } = await startDatabaseInstance();
+      const db = await startDatabaseInstance();
       const client = await initFerrousClient();
       const events: string[] = [];
 
@@ -47,14 +46,14 @@ Deno.test(
       });
       const subs = await Promise.all(subPromises);
 
-      await delay(50);
+      await delay(12);
       await Promise.all(
         subs.reverse().map(async (sub, idx) => {
           await sub.unsubscribe();
           events.push(`test-client${subs.length - idx}: unsubscribed`);
         }),
       );
-      await end();
+      await db.end();
       expect(events).toEqual([
         'test-client0: subscribed',
         'test-client1: subscribed',
