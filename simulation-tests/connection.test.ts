@@ -2,9 +2,9 @@
 import { expect } from '@std/expect';
 import { delay } from '@std/async';
 import { initClient } from '@fe-db/client';
-import { startDatabaseInstance } from './startDatabaseInstance.ts';
-import { makeCommandSpy } from './makeCommandSpy.ts';
-import { withDeadline } from './withDeadline.ts';
+import { startDatabaseInstance } from './utils/process/startDatabaseInstance.ts';
+import { makeCommandSpy } from './utils/makeCommandSpy.ts';
+import { withDeadline } from './utils/harness/withDeadline.ts';
 
 Deno.test('basic connection', async ({ step }) => {
   await step(

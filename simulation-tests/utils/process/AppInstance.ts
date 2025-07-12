@@ -1,6 +1,6 @@
 import { TextLineStream } from 'jsr:@std/streams@^1.0.9/text-line-stream';
 import { Kind } from './Kind.ts';
-import { makeLogger } from './log.ts';
+import { makeLogger } from '../log.ts';
 import { delay } from '@std/async/delay';
 
 export type AppInstance = {

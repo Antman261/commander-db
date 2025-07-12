@@ -1,7 +1,7 @@
 // deno-lint-ignore-file explicit-module-boundary-types
 import { delay } from 'jsr:@std/async';
 import { badSeed } from '@sim/env/random';
-import { makeLogger } from './log.ts';
+import { makeLogger } from '../log.ts';
 import { initAppInstance } from './AppInstance.ts';
 
 type Opt = { debug?: boolean; otel?: boolean; seed?: number };

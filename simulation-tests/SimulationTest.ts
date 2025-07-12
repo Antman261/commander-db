@@ -1,5 +1,4 @@
-import { AppInstance } from './AppInstance.ts';
-import { startDatabaseInstance } from './startDatabaseInstance.ts';
+import { AppInstance, startClientInstance, startDatabaseInstance } from './utils/process';
 
 type AppKind =
   | 'CommandClient'
