@@ -1,23 +1,20 @@
 // deno-lint-ignore-file no-explicit-any
 import { expect } from '@std/expect';
-import { deadline, delay } from '@std/async';
-import { initFerrousClient } from '@fe-db/client';
+import { delay } from '@std/async';
+import { initClient } from '@fe-db/client';
 import { startDatabaseInstance } from './startDatabaseInstance.ts';
-
-const withDeadline = <Fn extends (...args: never[]) => Promise<unknown>>(fn: Fn, ms: number): Fn =>
-  ((...args) => deadline(fn(...args), ms)) as Fn;
+import { makeCommandSpy } from './makeCommandSpy.ts';
+import { withDeadline } from './withDeadline.ts';
 
 Deno.test('basic connection', async ({ step }) => {
   await step(
     'can request a subscription and receive a command',
     withDeadline(
       async () => {
-        const { promise, resolve } = Promise.withResolvers();
+        const { promise, handler } = makeCommandSpy();
         const db = await startDatabaseInstance();
-        const { startCommandSubscription: subscribeToCommands } = await initFerrousClient();
-        const { unsubscribe } = await subscribeToCommands(async (cmd: any): Promise<any[]> =>
-          resolve(cmd) ?? []
-        );
+        const { startCommandSubscription } = await initClient();
+        const { unsubscribe } = await startCommandSubscription(handler);
         const receivedCommand = await promise;
         expect(receivedCommand).toEqual({ name: 'hello!' });
         await unsubscribe();
@@ -33,7 +30,7 @@ Deno.test(
   withDeadline(
     async () => {
       const db = await startDatabaseInstance();
-      const client = await initFerrousClient();
+      const client = await initClient();
       const events: string[] = [];
 
       const subPromises = Array.from({ length: 50 }).map(async (_, idx) => {

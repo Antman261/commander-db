@@ -14,7 +14,7 @@ type Connection = {
   send: (msg: Message) => Promise<number>;
 };
 
-export const initFerrousClient = (opt?: ConnectionConfig) => {
+export const initClient = (opt?: ConnectionConfig) => {
   const { hostname, port } = verifyConfig(opt);
   const connect = async () => {
     const connection = await Deno.connect({

@@ -6,7 +6,7 @@ import { initAppInstance } from './AppInstance.ts';
 
 type Opt = { debug?: boolean; otel?: boolean; seed?: number };
 
-export const defaultOpt = (): Required<Opt> => ({ debug: false, otel: false, seed: badSeed() });
+const defaultOpt = (): Required<Opt> => ({ debug: false, otel: false, seed: badSeed() });
 
 export const verifyOptions = (opt: Opt | undefined): Required<Opt> =>
   Object.assign(defaultOpt(), opt) as Required<Opt>;
