@@ -1,5 +1,5 @@
 import { delay } from '@std/async';
-import { BinaryDecodeStream } from '@fe-db/proto';
+import { BinaryDecodeStream } from '../protocol/streams/BinaryDecodeStream.ts';
 import type { Message } from './commonTypes.ts';
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';

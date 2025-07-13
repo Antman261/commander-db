@@ -12,8 +12,13 @@ export class SimulationTest {
     this.databaseInstances = await Promise.all(
       this.#config.databases.map(startDatabaseInstance),
     );
+    const dbPort = this.databaseInstances[0]?.port;
     this.clientInstances = await Promise.all(
-      this.#config.clients.map(startClientApp),
+      this.#config.clients.map((cfg) => {
+        const config = structuredClone(cfg);
+        (config.appArgs ??= []).push(`--dbPort=${dbPort}`);
+        return startClientApp(config);
+      }),
     );
   }
   async cleanup() {
