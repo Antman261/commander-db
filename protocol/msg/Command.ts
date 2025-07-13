@@ -1,7 +1,7 @@
 import type { Bigint128 } from './Bigint128.ts';
 import type { UInt16, UInt8 } from '@fe-db/proto';
 
-export type CommandMessage = {
+export type CommandInputMessage = {
   /**
    * Recommended: supply a meaningful idempotency key as the command id.
    *
@@ -36,3 +36,5 @@ export type CommandMessage = {
    */
   startAfter?: Date;
 };
+
+export type CommandMessage = Omit<{ id: Bigint128 } & CommandInputMessage, 'maxAttempts'>;

@@ -1,4 +1,4 @@
-import { CommandMessage } from './Command.ts';
+import { CommandInputMessage } from './Command.ts';
 
 export type Event = { id: bigint; metadata: ObjWide; cmdId: bigint } & Obj;
 export type PotentialEvent = Omit<Event, 'id'>;
@@ -30,10 +30,10 @@ type ToDbMessage<K extends DbMessageKindKey> = { k: DbMessageKinds[K] };
 
 export type CommandSubscriptionGranted = ToDbMessage<'commandSubscriptionGranted'>;
 export type CommandSubscriptionEnded = ToDbMessage<'commandSubscriptionEnded'>;
-export type CommandAssigned = ToDbMessage<'commandAssigned'>;
+export type CommandAssigned = ToDbMessage<'commandAssigned'> & CommandInputMessage;
 export type EventSubscriptionGranted = ToDbMessage<'eventSubscriptionGranted'>;
 export type EventSubscriptionEnded = ToDbMessage<'eventSubscriptionEnded'>;
-export type EventDispatched = ToDbMessage<'eventDispatched'>;
+export type EventDispatched = ToDbMessage<'eventDispatched'> & Event;
 export type DbMessage =
   | CommandSubscriptionGranted
   | CommandSubscriptionEnded
@@ -52,7 +52,7 @@ export type EndCommandSubscription = ToClientMessage<'endCommandSubscription'>;
 export type CommandCompleted = ToClientMessage<'commandCompleted'> & { events: PotentialEvent[] };
 export type RequestEventSubscription = ToClientMessage<'requestEventSubscription'> & { from?: number };
 export type EndEventSubscription = ToClientMessage<'endEventSubscription'>;
-export type IssueCommand = ToClientMessage<'issueCommand'> & CommandMessage;
+export type IssueCommand = ToClientMessage<'issueCommand'> & CommandInputMessage;
 export type ClientMessage =
   | RequestCommandSubscription
   | EndCommandSubscription
