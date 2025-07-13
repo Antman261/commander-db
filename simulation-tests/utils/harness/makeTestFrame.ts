@@ -30,6 +30,5 @@ const makeTestFrame = (opt: FrameOpt): TestWrapper => {
 
 export const makeSimTest = (opt: SimulationTestConfig) => {
   const simCtx = new SimulationTest(opt);
-  simLog({ opt });
   return makeTestFrame({ beforeEach: () => simCtx.start(), afterEach: () => simCtx.cleanup(), simCtx });
 };

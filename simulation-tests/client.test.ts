@@ -1,18 +1,25 @@
 import { expect } from '@std/expect';
-import { simLog } from './utils/log.ts';
 import { makeSimTest } from './utils/harness/makeTestFrame.ts';
 
+const withSim = makeSimTest({
+  databases: [{}],
+  clients: [{ name: 'counter' }],
+});
 Deno.test(
   'Client request response',
-  makeSimTest({
-    databases: [{}],
-    clients: [{ name: 'counter' }],
-  })(async ({ simCtx }) => {
+  withSim(async ({ simCtx }) => {
     const [client] = simCtx.clientInstances;
-    const r = await client.sendRequest('/');
-    const response = await r.text();
-    simLog({ response });
-    expect(response).toEqual('huh?');
-    await simCtx.cleanup();
+    const { text } = await client.getText('/');
+    expect(text).toEqual('Hello Hono!');
+  }),
+);
+
+Deno.test(
+  'issue a command, get back a response',
+  withSim(async ({ simCtx }) => {
+    const [client] = simCtx.clientInstances;
+    const { status, json } = await client.post('/counters', { name: 'ducks' });
+    expect(status).toEqual(200);
+    expect(json).toEqual({});
   }),
 );

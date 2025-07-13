@@ -1,5 +1,5 @@
 import { defaultConfig, SimulationTestConfig } from './testConfig.ts';
-import { AppInstance, ClientApp, startClientInstance, startDatabaseInstance } from './utils/process/index.ts';
+import { AppInstance, ClientApp, startClientApp, startDatabaseInstance } from './utils/process/index.ts';
 
 export class SimulationTest {
   clientInstances: ClientApp[] = [];
@@ -13,14 +13,14 @@ export class SimulationTest {
       this.#config.databases.map(startDatabaseInstance),
     );
     this.clientInstances = await Promise.all(
-      this.#config.clients.map(startClientInstance),
+      this.#config.clients.map(startClientApp),
     );
   }
   async cleanup() {
     await Promise.all(
-      this.databaseInstances.map((db) => db.end()).concat(this.clientInstances.map((client) =>
-        client.app.end()
-      )),
+      this.databaseInstances.map((db) => db.end()).concat(
+        this.clientInstances.map((client) => client.app.end()),
+      ),
     );
   }
 }
