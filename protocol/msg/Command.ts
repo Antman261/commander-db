@@ -11,25 +11,16 @@ export type CommandMessage = {
   aggregate: string;
   aggregateId: Bigint128;
   /**
-   * used in combination with uniqueId to prevent duplicate commands from being issued. For example:
-   * ```
-   * source: 'STRIPE',
-   * uniqueId: stripeRequest.headers['x-idempotency-key'],
-   * ```
-   */
-  source?: string;
-  uniqueId?: Bigint128;
-  /**
    * Maximum number of times to attempt a command.
    * Default: 3
    */
-  maxRuns?: UInt8;
+  maxAttempts?: UInt8;
   /**
    * Number of milliseconds before trying again after a failure.
    * @default 2_000
    */
-  runCooldownMs?: UInt8;
-  runTimeoutSeconds: UInt8;
+  attemptCooldownMs?: UInt8;
+  attemptTimeoutSeconds: UInt8;
   completionTimeOutSeconds: UInt16;
   cacheDurationHours: UInt16;
   /**
@@ -37,11 +28,11 @@ export type CommandMessage = {
    */
   metadata?: Record<string | number, unknown>;
   /**
-   * Data for the command handler
+   * Provide any data required by the command handler
    */
   data: Record<string | number, unknown>;
   /**
-   * Set this to delay the execution of a command
+   * Set this to delay the execution of a command until after the provided Date object
    */
-  runAfter?: Date;
+  startAfter?: Date;
 };

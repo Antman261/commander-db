@@ -1,3 +1,5 @@
+import { CommandMessage } from './Command.ts';
+
 export type Event = { id: bigint; metadata: ObjWide; cmdId: bigint } & Obj;
 export type PotentialEvent = Omit<Event, 'id'>;
 type Obj = Record<string, unknown>;
@@ -50,13 +52,7 @@ export type EndCommandSubscription = ToClientMessage<'endCommandSubscription'>;
 export type CommandCompleted = ToClientMessage<'commandCompleted'> & { events: PotentialEvent[] };
 export type RequestEventSubscription = ToClientMessage<'requestEventSubscription'> & { from?: number };
 export type EndEventSubscription = ToClientMessage<'endEventSubscription'>;
-export type IssueCommand = ToClientMessage<'issueCommand'> & {
-  aggregate: string;
-  aggregateId: string | number | bigint;
-  uniqueId?: string | number | bigint;
-  source?: string;
-  data: Obj;
-};
+export type IssueCommand = ToClientMessage<'issueCommand'> & CommandMessage;
 export type ClientMessage =
   | RequestCommandSubscription
   | EndCommandSubscription
