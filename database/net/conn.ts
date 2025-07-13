@@ -5,14 +5,12 @@ import { delay } from '@std/async';
 export async function handleConnection(conn: Deno.TcpConn): Promise<void> {
   try {
     const id = crypto.randomUUID();
-    console.log('Handling connection', id);
     // await authenticateClientConnection(conn)
     await conn.readable
       .pipeThrough(BinaryDecodeStream<ClientMessage>({ maxBodyBytes: 2097140 }))
       .pipeThrough(new MessageResponseStream(id))
       .pipeThrough(BinaryEncodeStream())
       .pipeTo(conn.writable);
-    console.log('Closed connection:', id);
   } catch (error) {
     console.log('connection error:', error);
   }

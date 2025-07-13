@@ -1,2 +1,2 @@
-export * from "@type/state";
-export * from "@type/primitive";
+export * from "./primitive/mod.ts";
+export * from "./state/mod.ts";

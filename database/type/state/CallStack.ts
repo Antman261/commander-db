@@ -1,8 +1,7 @@
 import { StackId } from './StackId.ts';
 import { AppInstance } from './AppInstance.ts';
 import { Bigint128 } from '../primitive/Bigint128.ts';
-import { SmallIntU } from '../primitive/SmallIntU.ts';
-import { TinyIntU } from '../primitive/TinyIntU.ts';
+import { UInt16, UInt8 } from '@fe-db/proto';
 import { DateTime } from '../primitive/DateTime.ts';
 import { UnknownObject } from '../primitive/UnknownObject.ts';
 import { StackFrameStored } from './StackFrame.ts';
@@ -79,12 +78,12 @@ export type CallStackPendingStored = {
    * the result of any completed stack frames within the call stack
    */
   frames: StackFrameStored[];
-  runs: TinyIntU;
-  maxRuns: TinyIntU;
-  runCooldownMs: TinyIntU;
-  runTimeoutSeconds: TinyIntU;
-  completionTimeOutSeconds: SmallIntU;
-  cacheDurationHours: SmallIntU;
+  runs: UInt8;
+  maxRuns: UInt8;
+  runCooldownMs: UInt8;
+  runTimeoutSeconds: UInt8;
+  completionTimeOutSeconds: UInt16;
+  cacheDurationHours: UInt16;
   willRunAt: DateTime;
   createdAt: DateTime; // becomes the willRunAt time for call stacks created without a runAfter time
 };

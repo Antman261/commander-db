@@ -1,5 +1,6 @@
 import { expect } from '@std/expect';
 import { makeSimTest } from './utils/harness/makeTestFrame.ts';
+import { delay } from '@std/async/delay';
 
 const withSim = makeSimTest({
   databases: [{}],
@@ -20,6 +21,9 @@ Deno.test(
     const [client] = simCtx.clientInstances;
     const { status, json } = await client.post('/counters', { name: 'ducks' });
     expect(status).toEqual(200);
-    expect(json).toEqual({});
+    expect(json).toEqual({ outcome: 'command issued' });
+    await delay(5);
+    const res = await client.get('/counters');
+    expect(res.json).toEqual({ ducks: 0 });
   }),
 );

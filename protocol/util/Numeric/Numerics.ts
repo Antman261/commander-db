@@ -1,26 +1,26 @@
 import { Numeric } from './NumericBase.ts';
 
-export class UTinyInt extends Numeric<'UTinyInt'> {
+export class UInt8 extends Numeric<'UTinyInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'UTinyInt', buffer, offset);
   }
 }
-export class STinyInt extends Numeric<'STinyInt'> {
+export class SInt8 extends Numeric<'STinyInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'STinyInt', buffer, offset);
   }
 }
-export class USmallInt extends Numeric<'USmallInt'> {
+export class UInt16 extends Numeric<'USmallInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'USmallInt', buffer, offset);
   }
 }
-export class SSmallInt extends Numeric<'SSmallInt'> {
+export class SInt16 extends Numeric<'SSmallInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'SSmallInt', buffer, offset);
   }
 }
-export class UInt extends Numeric<'UInt'> {
+export class UInt32 extends Numeric<'UInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'UInt', buffer, offset);
   }
@@ -30,7 +30,7 @@ export class UInt extends Numeric<'UInt'> {
   static bytes = 4;
 }
 
-export class SInt extends Numeric<'SInt'> {
+export class SInt32 extends Numeric<'SInt'> {
   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
     super(num, 'SInt', buffer, offset);
   }

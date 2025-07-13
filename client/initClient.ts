@@ -1,13 +1,10 @@
 import { delay } from '@std/async';
-import { BinaryDecodeStream } from '../protocol/streams/BinaryDecodeStream.ts';
-import type { Message } from './commonTypes.ts';
+import { BinaryDecodeStream, type Command, type CommandMessage, type Message } from '@fe-db/proto';
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';
 
-type Command = Record<string, unknown>;
-type Event = Record<string, unknown>;
 type CommandHandler = (command: Command) => Promise<Event[] | Error | string>;
-type CommandMessage = { k: 'COM'; cmd: Command } | { k: 'UNSUB_ACK' };
+
 type Connection = {
   connection: Deno.TcpConn;
   close(): Promise<void>;

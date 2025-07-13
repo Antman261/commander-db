@@ -5,7 +5,7 @@
   "tasks": {
     "dev": "deno run --watch main.ts"
   },
-  "workspace": ["./streams", "./util"],
+  "workspace": ["./streams", "./util", "./msg"],
   "imports": {
     "@std/bytes": "jsr:@std/bytes@^1.0.5",
     "@std/expect": "jsr:@std/expect@^1.0.13",

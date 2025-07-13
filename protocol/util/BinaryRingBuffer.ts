@@ -1,4 +1,4 @@
-import { UInt } from './Numeric/mod.ts';
+import { UInt32 } from './Numeric/mod.ts';
 
 /**
  * A fixed-sized ring buffer for binary data
@@ -6,8 +6,8 @@ import { UInt } from './Numeric/mod.ts';
 export class BinaryRingBuffer {
   #maxBytes: number;
   #dataStore: Uint8Array;
-  #writePos: UInt;
-  #readPos: UInt;
+  #writePos: UInt32;
+  #readPos: UInt32;
   /**
    * @constructor
    * @param maxBytes Maximum number of bytes the buffer can hold.
@@ -16,8 +16,8 @@ export class BinaryRingBuffer {
     this.#maxBytes = maxBytes;
     this.#dataStore = new Uint8Array(maxBytes);
     const positionBuffer = new Uint8Array(8).buffer;
-    this.#writePos = new UInt(0, positionBuffer);
-    this.#readPos = new UInt(0, positionBuffer, 4);
+    this.#writePos = new UInt32(0, positionBuffer);
+    this.#readPos = new UInt32(0, positionBuffer, 4);
   }
   /**
    * Number of writable bytes before the write cursor returns to index 0.

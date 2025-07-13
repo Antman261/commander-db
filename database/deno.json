@@ -14,7 +14,7 @@
     "@std/streams": "jsr:@std/streams@^1.0.9",
     "pure-rand": "npm:pure-rand@^7.0.1"
   },
-  "workspace": ["util", "type", "net", "execution/lifecycle"],
+  "workspace": ["util", "./type", "net", "execution/lifecycle"],
   "lint": {
     "exclude": ["**/*.md"],
     "rules": {
