@@ -1,14 +1,28 @@
 import { delay } from '@std/async';
-import { BinaryDecodeStream, type Command, type CommandMessage, type Message } from '@fe-db/proto';
+import {
+  BinaryDecodeStream,
+  bye,
+  type ClientMessage,
+  type CmdSubMsgs,
+  commandCompleted,
+  type CommandInputMessage,
+  type CommandMessage,
+  endCommandSubscription,
+  endEventSubscription,
+  issueCommand,
+  type PotentialEvent,
+  requestCommandSubscription,
+  requestEventSubscription,
+} from '@fe-db/proto';
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';
 
-type CommandHandler = (command: Command) => Promise<Event[] | Error | string>;
+type CommandHandler = (command: CommandInputMessage) => Promise<PotentialEvent[] | Error | string>;
 
 type Connection = {
   connection: Deno.TcpConn;
   close(): Promise<void>;
-  send: (msg: Message) => Promise<number>;
+  send: (msg: ClientMessage) => Promise<number>;
 };
 
 export const initClient = (opt?: ConnectionConfig) => {
@@ -20,11 +34,11 @@ export const initClient = (opt?: ConnectionConfig) => {
     });
     connection.setNoDelay(true);
     connection.setKeepAlive(true);
-    const send = (msg: Message) => connection.write(encodeBinaryMessage(msg)); // todo: only resolve promise once all bytes have been written
+    const send = (msg: ClientMessage) => connection.write(encodeBinaryMessage(msg)); // todo: only resolve promise once all bytes have been written
     return {
       connection,
       async close() {
-        await send({ k: 'EXIT' });
+        await send(bye());
         await delay(5);
         connection.close();
       },
@@ -36,37 +50,37 @@ export const initClient = (opt?: ConnectionConfig) => {
   return {
     async startCommandSubscription(onCommand: CommandHandler, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<CommandMessage>());
+      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<CmdSubMsgs>());
       const commandProcessingLoop = (async () => {
         for await (const msg of commandStream) {
-          if (msg.k === 'UNSUB_ACK') {
+          if (msg.k === 1) {
             await close();
             break;
           }
-          if (msg.k === 'COM') {
-            await send({ k: 'COM_RES', res: await onCommand(msg.cmd) });
+          if (msg.k === 2) {
+            await send(commandCompleted(await onCommand(msg.cmd)));
           }
         }
       })();
-      await send({ k: 'REQ_SUB', ags: aggregates });
+      await send(requestCommandSubscription(aggregates));
       return {
         assignment: 'CommandSubscription',
         parameters: aggregates,
-        unsubscribe: () => Promise.allSettled([send({ k: 'UNSUB' }), commandProcessingLoop]),
+        unsubscribe: () => Promise.allSettled([send(endCommandSubscription()), commandProcessingLoop]),
       };
     },
-    async startEventSubscription(fromEvent = 0) {
+    async startEventSubscription(fromEvent = 0n) {
       const { connection, send, close } = await connect();
       const eventStream = connection.readable.pipeThrough(BinaryDecodeStream<Event>());
-      await send({ k: 'SUB_E', s: fromEvent });
+      await send(requestEventSubscription(fromEvent));
       return {
         eventStream,
-        unsubscribe: () => send({ k: 'UNSUB' }).then(close),
+        unsubscribe: () => send(endEventSubscription()).then(close),
       };
     },
-    async issueCommand(cmd: Command) {
+    async issueCommand(cmd: CommandMessage) {
       const { send } = await connectLazily();
-      await send(cmd);
+      await send(issueCommand(cmd));
     },
   };
 };

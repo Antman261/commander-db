@@ -1,64 +1,50 @@
-import { CommandInputMessage } from './Command.ts';
+import type { CommandInputMessage } from './Command.ts';
 
 export type Event = { id: bigint; metadata: ObjWide; cmdId: bigint } & Obj;
 export type PotentialEvent = Omit<Event, 'id'>;
+export type CommandResult = PotentialEvent[] | Error | string;
 type Obj = Record<string, unknown>;
 type ObjWide = Record<string | number, unknown>;
+/**
+ * Messages sent from the database to the client
+ */
+export type DbMessage = {
+  commandSubscriptionGranted: { k: 0 };
+  commandSubscriptionEnded: { k: 1 };
+  commandAssigned: { k: 2; cmd: CommandInputMessage };
+  eventSubscriptionGranted: { k: 3; eventStream: ReadableStream<Event> };
+  eventSubscriptionEnded: { k: 4 };
+};
+export type CmdSubMsgs = DbMessage['commandAssigned'] | DbMessage['commandSubscriptionEnded'];
 
-export const clientMsgKind = {
-  requestCommandSubscription: 0,
-  endCommandSubscription: 1,
-  commandCompleted: 2,
-  requestEventSubscription: 3,
-  endEventSubscription: 4,
-  issueCommand: 5,
-} as const;
+/**
+ * Messages sent from the client to the database
+ */
+export type ClientMessages = {
+  requestCommandSubscription: { k: 0; ags?: string[] };
+  endCommandSubscription: { k: 1 };
+  commandCompleted: { k: 2; result: CommandResult };
+  requestEventSubscription: { k: 3; from?: bigint };
+  endEventSubscription: { k: 4 };
+  issueCommand: { k: 5 } & CommandInputMessage;
 
-export const dbMsgKind = {
-  commandSubscriptionGranted: 0,
-  commandSubscriptionEnded: 1,
-  commandAssigned: 2,
-  eventSubscriptionGranted: 3,
-  eventSubscriptionEnded: 4,
-  eventDispatched: 5,
-} as const;
+  bye: { k: 6 };
+};
+export type ClientMessage = ClientMessages[keyof ClientMessages];
 
-export type DbMessageKinds = typeof dbMsgKind;
-export type DbMessageKindKey = keyof DbMessageKinds;
-export type DbMessageKind = DbMessageKinds[DbMessageKindKey];
-type ToDbMessage<K extends DbMessageKindKey> = { k: DbMessageKinds[K] };
-
-export type CommandSubscriptionGranted = ToDbMessage<'commandSubscriptionGranted'>;
-export type CommandSubscriptionEnded = ToDbMessage<'commandSubscriptionEnded'>;
-export type CommandAssigned = ToDbMessage<'commandAssigned'> & CommandInputMessage;
-export type EventSubscriptionGranted = ToDbMessage<'eventSubscriptionGranted'>;
-export type EventSubscriptionEnded = ToDbMessage<'eventSubscriptionEnded'>;
-export type EventDispatched = ToDbMessage<'eventDispatched'> & Event;
-export type DbMessage =
-  | CommandSubscriptionGranted
-  | CommandSubscriptionEnded
-  | CommandAssigned
-  | EventSubscriptionGranted
-  | EventSubscriptionEnded
-  | EventDispatched;
-
-export type ClientMessageKinds = typeof clientMsgKind;
-export type ClientMessageKindKey = keyof ClientMessageKinds;
-export type ClientMessageKind = ClientMessageKinds[ClientMessageKindKey];
-type ToClientMessage<K extends ClientMessageKindKey> = { k: ClientMessageKinds[K] };
-
-export type RequestCommandSubscription = ToClientMessage<'requestCommandSubscription'>;
-export type EndCommandSubscription = ToClientMessage<'endCommandSubscription'>;
-export type CommandCompleted = ToClientMessage<'commandCompleted'> & { events: PotentialEvent[] };
-export type RequestEventSubscription = ToClientMessage<'requestEventSubscription'> & { from?: number };
-export type EndEventSubscription = ToClientMessage<'endEventSubscription'>;
-export type IssueCommand = ToClientMessage<'issueCommand'> & CommandInputMessage;
-export type ClientMessage =
-  | RequestCommandSubscription
-  | EndCommandSubscription
-  | CommandCompleted
-  | RequestEventSubscription
-  | EndEventSubscription
-  | IssueCommand;
-
-//
+export const requestCommandSubscription = (ags?: string[]): ClientMessages['requestCommandSubscription'] => ({
+  k: 0,
+  ags,
+});
+export const endCommandSubscription = (): ClientMessages['endCommandSubscription'] => ({ k: 1 });
+export const commandCompleted = (result: CommandResult): ClientMessages['commandCompleted'] => ({
+  k: 2,
+  result,
+});
+export const requestEventSubscription = (from?: bigint): ClientMessages['requestEventSubscription'] => ({
+  k: 3,
+  from,
+});
+export const endEventSubscription = (): ClientMessages['endEventSubscription'] => ({ k: 4 });
+export const issueCommand = (cmd: CommandInputMessage): ClientMessages['issueCommand'] => ({ k: 5, ...cmd });
+export const bye = (): ClientMessages['bye'] => ({ k: 6 });
