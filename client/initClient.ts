@@ -3,10 +3,11 @@ import {
   BinaryDecodeStream,
   bye,
   type ClientMessage,
-  type CmdSubMsgs,
   commandCompleted,
   type CommandInputMessage,
   type CommandMessage,
+  type DbCmdSubMsgs,
+  dbMsg,
   endCommandSubscription,
   endEventSubscription,
   issueCommand,
@@ -28,6 +29,7 @@ type Connection = {
 export const initClient = (opt?: ConnectionConfig) => {
   const { hostname, port } = verifyConfig(opt);
   const connect = async () => {
+    // TODO: Replace TCP socket with WebTransport: https://developer.chrome.com/docs/capabilities/web-apis/webtransport
     const connection = await Deno.connect({
       hostname,
       port,
@@ -50,23 +52,26 @@ export const initClient = (opt?: ConnectionConfig) => {
   return {
     async startCommandSubscription(onCommand: CommandHandler, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<CmdSubMsgs>());
+      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbCmdSubMsgs>());
       const commandProcessingLoop = (async () => {
         for await (const msg of commandStream) {
-          if (msg.k === 1) {
-            await close();
-            break;
-          }
-          if (msg.k === 2) {
-            await send(commandCompleted(await onCommand(msg.cmd)));
+          switch (msg.k) {
+            case dbMsg.commandSubscriptionEnded:
+              return await close();
+            case dbMsg.commandAssigned:
+              await send(commandCompleted(await onCommand(msg.cmd)));
+              break;
           }
         }
       })();
+      const unsubscribe = async () => {
+        await Promise.allSettled([send(endCommandSubscription()), commandProcessingLoop]);
+      };
       await send(requestCommandSubscription(aggregates));
       return {
         assignment: 'CommandSubscription',
         parameters: aggregates,
-        unsubscribe: () => Promise.allSettled([send(endCommandSubscription()), commandProcessingLoop]),
+        unsubscribe,
       };
     },
     async startEventSubscription(fromEvent = 0n) {

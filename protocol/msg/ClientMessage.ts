@@ -1,21 +1,4 @@
-import type { CommandInputMessage } from './Command.ts';
-
-export type Event = { id: bigint; metadata: ObjWide; cmdId: bigint } & Obj;
-export type PotentialEvent = Omit<Event, 'id'>;
-export type CommandResult = PotentialEvent[] | Error | string;
-type Obj = Record<string, unknown>;
-type ObjWide = Record<string | number, unknown>;
-/**
- * Messages sent from the database to the client
- */
-export type DbMessage = {
-  commandSubscriptionGranted: { k: 0 };
-  commandSubscriptionEnded: { k: 1 };
-  commandAssigned: { k: 2; cmd: CommandInputMessage };
-  eventSubscriptionGranted: { k: 3; eventStream: ReadableStream<Event> };
-  eventSubscriptionEnded: { k: 4 };
-};
-export type CmdSubMsgs = DbMessage['commandAssigned'] | DbMessage['commandSubscriptionEnded'];
+import type { CommandInputMessage, CommandResult } from './Command.ts';
 
 /**
  * Messages sent from the client to the database
@@ -27,11 +10,25 @@ export type ClientMessages = {
   requestEventSubscription: { k: 3; from?: bigint };
   endEventSubscription: { k: 4 };
   issueCommand: { k: 5 } & CommandInputMessage;
-
   bye: { k: 6 };
 };
+export const clientMsg = {
+  requestCommandSubscription: 0,
+  endCommandSubscription: 1,
+  commandCompleted: 2,
+  requestEventSubscription: 3,
+  endEventSubscription: 4,
+  issueCommand: 5,
+  bye: 6,
+} as const;
+/**
+ * Messages sent from the client to the database
+ */
 export type ClientMessage = ClientMessages[keyof ClientMessages];
 
+/**
+ * Request a command subscription to begin processing commands dispatched by CommanderDB
+ */
 export const requestCommandSubscription = (ags?: string[]): ClientMessages['requestCommandSubscription'] => ({
   k: 0,
   ags,

@@ -1,4 +1,5 @@
 import type { Bigint128 } from './Bigint128.ts';
+import type { PotentialEvent } from './Event.ts';
 import type { UInt16, UInt8 } from '@fe-db/proto';
 
 export type CommandInputMessage = {
@@ -38,3 +39,4 @@ export type CommandInputMessage = {
 };
 
 export type CommandMessage = Omit<{ id: Bigint128 } & CommandInputMessage, 'maxAttempts'>;
+export type CommandResult = PotentialEvent[] | Error | string;
