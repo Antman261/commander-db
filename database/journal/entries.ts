@@ -1,4 +1,4 @@
-import { CommandPendingStored, DateTime, WorkflowStored } from '@db/type';
+import { CommandPending, DateTime, WorkflowStored } from '@db/type';
 
 const journalEntryKind = {
   cmdIssued: 0,
@@ -19,7 +19,7 @@ type DraftEntryBase = {
   submittedAt: DateTime;
 };
 
-type NewCommand = Omit<CommandPendingStored, 'error'>;
+type NewCommand = Omit<CommandPending, 'error'>;
 
 export type CommandIssuedDraftEntry = DraftEntryBase & {
   kind: JournalEntryKind['cmdIssued'];
@@ -35,11 +35,11 @@ export type CommandStartedDraftEntry = DraftEntryBase & {
   /**
    * The command id will be used as the stack id for the resulting call stack
    */
-  commandId: CommandPendingStored['id'];
+  commandId: CommandPending['id'];
 };
 
 export type StackContinuedDraftEntry = DraftEntryBase & {
   kind: JournalEntryKind['stackContinued'];
   stackId: CallStackStored['id'];
-  commandId?: CommandPendingStored['id'];
+  commandId?: CommandPending['id'];
 };

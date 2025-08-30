@@ -147,6 +147,31 @@
       "jsr:@std/expect@^1.0.13",
       "jsr:@std/fmt@^1.0.8",
       "jsr:@std/testing@^1.0.14"
-    ]
+    ],
+    "links": {
+      "jsr:@fe-db/client@0.1.0": {
+        "dependencies": [
+          "jsr:@std/assert@1",
+          "jsr:@std/async@*",
+          "jsr:@std/bytes@^1.0.5",
+          "jsr:@std/encoding@^1.0.7"
+        ]
+      },
+      "jsr:@fe-db/proto@0.1.0": {
+        "dependencies": [
+          "jsr:@std/bytes@^1.0.5",
+          "jsr:@std/expect@^1.0.13",
+          "jsr:@std/streams@^1.0.9"
+        ]
+      },
+      "jsr:@proto/msg": {},
+      "jsr:@proto/streams": {},
+      "jsr:@proto/util": {},
+      "jsr:@sim/env": {
+        "dependencies": [
+          "npm:pure-rand@^7.0.1"
+        ]
+      }
+    }
   }
 }

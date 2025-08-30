@@ -1,5 +1,5 @@
+import { Obj } from '@antman/formic-utils';
 import { Bigint128 } from '../primitive/Bigint128.ts';
-import { UnknownObject } from '../primitive/UnknownObject.ts';
 
 /**
  * the index position of a stack frame in the parent frame's call stack
@@ -13,5 +13,5 @@ export type FrameTuple = FrameIndex[];
 export type StackFrameStored = {
   stackId: Bigint128;
   frameTuple: FrameTuple;
-  result: UnknownObject;
+  result: Obj;
 };
