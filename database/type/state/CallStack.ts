@@ -1,5 +1,4 @@
 import { StackId } from './StackId.ts';
-import { AppInstance } from './AppInstance.ts';
 import { Bigint128 } from '../primitive/Bigint128.ts';
 import { UInt16, UInt8 } from '@fe-db/proto';
 import { DateTime } from '../primitive/DateTime.ts';
@@ -90,7 +89,6 @@ export type CallStackPendingStored = {
 
 export type CallStackRunningStored = Omit<CallStackPendingStored, 'status'> & {
   status: CallStackStatus['running'];
-  appInstanceId: AppInstance['id']; // if command: the appInstanceId has a lock on the aggregate instance
   attemptId: CallStackAttemptStored['id']; // else: the attempt id has a lock on the StackId
   beganAt: DateTime;
 };
@@ -117,7 +115,7 @@ export type CallStackCompletedStored =
 export type CallStackAttemptStored = {
   id: Bigint128; // otel span id
   stackId: StackId; // otel parent span id?
-  appInstanceId: AppInstance['id'];
+  appInstanceId: string;
   beganAt: DateTime;
   stoppedAt: DateTime; // we don't store running attempts, only failed or completed
   error?: unknown; // the successful attempt will be the last, and it won't have an error

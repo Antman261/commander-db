@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@antman/formic-utils@0.4": "0.4.0",
     "jsr:@std/assert@1": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/async@*": "1.0.11",
@@ -18,6 +19,9 @@
     "npm:pure-rand@^7.0.1": "7.0.1"
   },
   "jsr": {
+    "@antman/formic-utils@0.4.0": {
+      "integrity": "c3bb3338b6b7c9c417d6046c16dd71c01e1ffe2a02d0703834a653e57b9e39e8"
+    },
     "@std/assert@1.0.8": {
       "integrity": "ebe0bd7eb488ee39686f77003992f389a06c3da1bbd8022184804852b2fa641b",
       "dependencies": [
@@ -78,6 +82,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@antman/formic-utils@0.4",
       "jsr:@std/assert@1",
       "jsr:@std/async@^1.0.11",
       "jsr:@std/bytes@^1.0.5",
@@ -86,6 +91,23 @@
       "jsr:@std/expect@^1.0.13",
       "jsr:@std/streams@^1.0.9",
       "npm:pure-rand@^7.0.1"
-    ]
+    ],
+    "links": {
+      "jsr:@fe-db/proto@0.1.0": {
+        "dependencies": [
+          "jsr:@std/bytes@^1.0.5",
+          "jsr:@std/expect@^1.0.13",
+          "jsr:@std/streams@^1.0.9"
+        ]
+      },
+      "jsr:@proto/msg": {},
+      "jsr:@proto/streams": {},
+      "jsr:@proto/util": {},
+      "jsr:@sim/env": {
+        "dependencies": [
+          "npm:pure-rand@^7.0.1"
+        ]
+      }
+    }
   }
 }

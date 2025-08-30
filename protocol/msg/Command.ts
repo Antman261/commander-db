@@ -11,6 +11,7 @@ export type CommandInputMessage = {
   id?: Bigint128;
   aggregate: string;
   aggregateId: Bigint128;
+  name: string;
   /**
    * Maximum number of times to attempt a command.
    * Default: 3
@@ -21,9 +22,9 @@ export type CommandInputMessage = {
    * @default 2_000
    */
   attemptCooldownMs?: UInt8;
-  attemptTimeoutSeconds: UInt8;
-  completionTimeOutSeconds: UInt16;
-  cacheDurationHours: UInt16;
+  attemptTimeoutSeconds?: UInt8;
+  completionTimeOutSeconds?: UInt16;
+  cacheDurationHours?: UInt16;
   /**
    * Provide contextual metadata such as trace id, span id, etc.
    */
@@ -31,7 +32,7 @@ export type CommandInputMessage = {
   /**
    * Provide any data required by the command handler
    */
-  data: Record<string | number, unknown>;
+  data?: Record<string | number, unknown>;
   /**
    * Set this to delay the execution of a command until after the provided Date object
    */

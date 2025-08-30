@@ -1,4 +1,4 @@
-import { AppInstance, CallStack, CommandPendingStored, DateTime, WorkflowStored } from '@db/type';
+import { CommandPendingStored, DateTime, WorkflowStored } from '@db/type';
 
 const journalEntryKind = {
   cmdIssued: 0,
@@ -9,13 +9,13 @@ const journalEntryKind = {
   wkflowReqStarted: 5,
   wkflowReqFailed: 6,
   wkflowReqCompleted: 7,
-  stackContinued: 8,
+  stackContinued: 8, // ?
   stackErrored: 9,
 } as const;
 type JournalEntryKind = typeof journalEntryKind;
 
 type DraftEntryBase = {
-  appInstanceId: AppInstance['id'];
+  appInstanceId: string;
   submittedAt: DateTime;
 };
 

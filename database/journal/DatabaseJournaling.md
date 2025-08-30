@@ -1,13 +1,36 @@
 # Database Journaling
 
-In the context of databases, a journal (AKA write-ahead-log (WAL)) is a log of all operations the database will or has performed. The primary advantage of database journaling is allowing the database application to write a journal (log) of changes it would make without physically performing those updates on disk. In a relational database, this is a significant optimization; it is much faster to write an append-only log to disk than it is to update many files on disk.
+In the context of databases, a journal (AKA write-ahead-log (WAL)) is a log of all operations the database will or has performed. The primary advantage of database journaling is allowing the database application to write a journal (log) of changes it would make without physically performing several updates on disk. Instead, it writes a single journal entry describing the update and then a decoupled subsystem of the database reads the journal entries from disk and applies the updates to a virtualized in-memory file system. 
 
-## Is journaling useful for EggyDB as an event-based database?
+In a relational database, this is a significant optimization; it is much faster to write an append-only log to disk than it is to update many files on disk.
 
-Event Sourcing takes inspiration, in part, from the journaling approach implemented by databases. So, it's worth considering if a database journal would be redundant in an event sourcing database.
+## CommanderDB is a command-driven event-sourced database, what does that mean?
 
-What operations will EggyDB perform?
+To date, all operational transactional databases have implemented atomicity, consistency, isolation, and durability ([ACID](https://en.wikipedia.org/wiki/ACID)) guarantees by implementing transaction isolation using techniques such as Multi-Version Concurrency Control (MVCC). In these systems, 
 
+* the application defines the scope of a transaction, informing the database of a transaction's beginning and end
+* the database cannot know the final scope of a transaction until receipt of the application's COMMIT message
+* the database must support multiple independent application instances each running their own isolated transactions
+
+In these traditional systems, the application is responsible for defining the transaction boundary. But consider, what are most applications trying to achieve? Users of the system issue a command requesting a change, the application determines the outcome of the command and updates the database accordingly. Ideally, any sequence of commands should produce a deterministic and repeatable outcome. This can fail in two important ways:
+
+1. Concurrent updates: Attempting to process two commands concurrently for the same entity instance, e.g. two commands updating one account
+2. Non-deterministic command sequencing: Command A is issued before Command B, but Command B is completed first
+
+Database Transactions are the prevailing, and ineffective, solution to these problems.
+
+### What CommanderDB does differently
+
+Instead of the application controlling the database's transactions, CommanderDB dispatches a queue of commands to waiting application instances, thereby inverting control. The application issues commands, CommanderDB saves them, and despatches them sequentially. The primary result of a command is one or more events, which CommanderDB saves in an append-only log called an event store.
+
+Instead of producing a WAL indicating which bytes to update in which file, CommanderDB's WAL tracks the activities of every command. In this way, transactional concerns evaporate. This significantly improves the performance, reliability, and throughput of any application.
+
+It also provides a significantly simpler programming model. Applications are easier to implement and reason about. From this foundation, a durable execution framework becomes trivial to implement.
+
+## Is journaling useful for CommanderDB as a command-driven event-sourced database?
+
+What operations will CommanderDB perform?
+ 
 - commands will be received (saved to disk)
 - commands will be started (commands do not always begin immediately once received)
 - commands will be completed (completed commands will contain events)
@@ -17,7 +40,7 @@ What operations will EggyDB perform?
 - events will be appended to an event stream
 - event streams will be migrated to new schemas (event migration will cause a full rewrite of the event stream files)
 - event streams will be archived (maybe?)
-- latest event per aggregate instance will be updated
+- latest event per aggregate instance will be updated (why would this be necessary now?)
 - idempotency keys will be saved
 - idempotency keys will expire
 - idempotency keys will be deleted

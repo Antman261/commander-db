@@ -4,7 +4,7 @@ import type { CommandInputMessage, CommandResult } from './Command.ts';
  * Messages sent from the client to the database
  */
 export type ClientMessages = {
-  requestCommandSubscription: { k: 0; ags?: string[] };
+  requestCommandSubscription: { k: 0; ags?: string[]; num: number };
   endCommandSubscription: { k: 1 };
   commandCompleted: { k: 2; result: CommandResult };
   requestEventSubscription: { k: 3; from?: bigint };
@@ -29,8 +29,12 @@ export type ClientMessage = ClientMessages[keyof ClientMessages];
 /**
  * Request a command subscription to begin processing commands dispatched by CommanderDB
  */
-export const requestCommandSubscription = (ags?: string[]): ClientMessages['requestCommandSubscription'] => ({
+export const requestCommandSubscription = (
+  num: number,
+  ags?: string[],
+): ClientMessages['requestCommandSubscription'] => ({
   k: 0,
+  num,
   ags,
 });
 export const endCommandSubscription = (): ClientMessages['endCommandSubscription'] => ({ k: 1 });

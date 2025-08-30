@@ -10,10 +10,10 @@ const counters: Record<string, number> = {};
 const feDb = initClient({ port: Number(args.dbPort[0]) }); // todo: make client handle this
 feDb.startCommandSubscription(async (cmd) => {
   console.log('Received command:', cmd);
-  if (cmd.command === 'start-counter') return [];
+  if (cmd.name === 'start-counter') return [{ kind: 'counter-started' }];
   return [];
 });
-const eventSubscription = await feDb.startEventSubscription(0);
+const eventSubscription = await feDb.startEventSubscription(0n);
 (async () => {
   for await (const event of eventSubscription.eventStream) {
     console.log('Received event:', event);
@@ -35,7 +35,7 @@ app.post('/counters', async (c) => {
   await feDb.issueCommand({
     aggregate: 'counter',
     aggregateId: name,
-    command: 'start-counter',
+    name: 'start-counter',
   });
   return c.json({ outcome: 'command issued' });
 });

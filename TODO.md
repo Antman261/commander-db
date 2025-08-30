@@ -21,7 +21,7 @@
 - Need to ensure fsync before emitting entry event
 
 Questions:
-
+ 
 - do I need to virtualize files or can I just worry about the data itself and the materialization process can figure out where the changes should go?
   - will allow files to be different sizes. a file could just contain serialized data
   - could maintain an index inside each file containing the byte offset of each row?

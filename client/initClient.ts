@@ -6,7 +6,7 @@ import {
   commandCompleted,
   type CommandInputMessage,
   type CommandMessage,
-  type DbCmdSubMsgs,
+  type DbMessage,
   dbMsg,
   endCommandSubscription,
   endEventSubscription,
@@ -50,9 +50,9 @@ export const initClient = (opt?: ConnectionConfig) => {
   let issueCommandConnection: Promise<Connection> | undefined;
   const connectLazily = () => (issueCommandConnection ??= connect());
   return {
-    async startCommandSubscription(onCommand: CommandHandler, aggregates?: string[]) {
+    async startCommandSubscription(onCommand: CommandHandler, maxConcurrency = 20, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbCmdSubMsgs>());
+      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMessage>());
       const commandProcessingLoop = (async () => {
         for await (const msg of commandStream) {
           switch (msg.k) {
@@ -67,7 +67,7 @@ export const initClient = (opt?: ConnectionConfig) => {
       const unsubscribe = async () => {
         await Promise.allSettled([send(endCommandSubscription()), commandProcessingLoop]);
       };
-      await send(requestCommandSubscription(aggregates));
+      await send(requestCommandSubscription(maxConcurrency, aggregates));
       return {
         assignment: 'CommandSubscription',
         parameters: aggregates,
