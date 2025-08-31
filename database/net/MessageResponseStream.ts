@@ -1,3 +1,4 @@
+import { journalManager } from '@db/jnl';
 import { isStrictlyNever } from '@antman/formic-utils';
 import { cmdSubManager } from '@db/translation';
 import { ClientMessage, clientMsg, DbMessage } from '@fe-db/proto';
@@ -19,6 +20,7 @@ export class MessageResponseStream extends TransformStream<ClientMessage, DbMess
               break;
             case clientMsg.issueCommand:
               // TODO
+              journalManager.writeCommand(msg.);
               break;
             case clientMsg.commandCompleted:
               // TODO

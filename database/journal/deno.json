@@ -1,0 +1,4 @@
+{
+  "name": "@db/jnl",
+  "exports": "./mod.ts"
+}

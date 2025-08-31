@@ -32,6 +32,7 @@ export type CommandClientInput =
     | 'runCooldownMs'
     | 'context'
     | 'args'
+    | 'parentCommandId'
   >
   & {
     /**
@@ -66,6 +67,7 @@ export type CommandClientInput =
      * The id of the instance of the subject. For example, the account id against which an invoice will be issued in a billing system.
      */
     subjectId: CommandPending['subjectId'];
+    workflowId?: CommandPending['parentCommandId'];
     /**
      * Use in combination with command id to scope idempotency checks, typically with third parties. For example:
      * ```
@@ -84,7 +86,7 @@ export type CommandClientInput =
 
 export type CommandPending = {
   id: Bigint128;
-  kind: Kind['standard'];
+  kind: Kind;
   status: CommandStatus['pending'];
   /**
    * the name will always be a function name, but its referred to as a command or workflow name depending on the kind
@@ -94,8 +96,12 @@ export type CommandPending = {
   subjectId: Bigint128;
   source?: string;
   input: unknown;
-  // result: unknown; -- a pending command can't have a result yet
+  // output: unknown; -- a pending command can't have an output yet
   metadata: Obj;
+  /**
+   * A parentCommandId will only be present if the command was issued from within a workflow.
+   */
+  parentCommandId?: Bigint128;
   runs: UInt8;
   maxRuns: UInt8;
   runCooldownMs: UInt8;
@@ -127,7 +133,7 @@ export type CommandCompleted =
     status: CommandStatus['completed'];
     beganAt: DateTime;
     completedAt: DateTime;
-    result: Obj;
+    output: Obj;
     attempts: CommandAttempt[];
   };
 
@@ -142,7 +148,7 @@ export type CommandAttempt = {
 
 type CommandResultCacheEntry = {
   commandId: CommandPending['id'];
-  result: CommandCompleted['result'];
+  result: CommandCompleted['output'];
   expiresAt: DateTime;
 };
 /**
