@@ -1,26 +1,28 @@
 import { CommandPending, DateTime } from '@db/type';
 
-const journalEntryKind = {
+export const jnlEntryKind = {
   cmdIssued: 0,
   cmdStarted: 1,
   cmdFailed: 2,
   cmdCompleted: 3,
 } as const;
-type JournalEntryKind = typeof journalEntryKind;
+type JournalEntryKind = typeof jnlEntryKind;
 
 type EntryBase = {
-  appInstanceId: string;
-  writtenAt: DateTime;
+  connId: string; // connection id
+  // writtenAt: DateTime;
 };
 
 type NewCommand = Omit<CommandPending, 'error'>;
 
 export type CommandIssuedEntry = EntryBase & {
-  kind: JournalEntryKind['cmdIssued'];
-  command: NewCommand;
+  k: JournalEntryKind['cmdIssued'];
+  cmd: NewCommand;
 };
 
 export type CommandStartedEntry = EntryBase & {
-  kind: JournalEntryKind['cmdStarted'];
-  commandId: CommandPending['id'];
+  k: JournalEntryKind['cmdStarted'];
+  cmdId: CommandPending['id'];
 };
+
+export type JnlEntryInput = CommandIssuedEntry | CommandStartedEntry;
