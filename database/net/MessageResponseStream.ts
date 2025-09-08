@@ -20,7 +20,7 @@ export class MessageResponseStream extends TransformStream<ClientMessage, DbMess
               break;
             case clientMsg.issueCommand:
               // TODO
-              journalWriter.writeCommand(msg);
+              journalWriter.writeCommand(msg, id);
               break;
             case clientMsg.commandCompleted:
               // TODO

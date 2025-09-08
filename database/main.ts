@@ -1,5 +1,5 @@
 import { connectionManager } from '@db/net';
-import { Lifecycle } from '@db/lifecycle';
+import { Lifecycle } from '@antman/lifecycle';
 import { main } from './config.ts';
 import { journalWriter } from '@db/jnl';
 
@@ -11,5 +11,6 @@ if (import.meta.main) {
   lifecycle.register(main);
   lifecycle.register(connectionManager);
   lifecycle.register(journalWriter);
+  lifecycle.register(journalReader);
   await lifecycle.start();
 }

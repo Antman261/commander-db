@@ -25,4 +25,4 @@ export type CommandStartedEntry = EntryBase & {
   cmdId: CommandPending['id'];
 };
 
-export type JnlEntryInput = CommandIssuedEntry | CommandStartedEntry;
+export type JnlEntry = CommandIssuedEntry | CommandStartedEntry;

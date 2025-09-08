@@ -1,23 +1,20 @@
-import { type Component } from '@db/lifecycle';
-import { CommandInputMessage, UInt16, UInt8 } from '@fe-db/proto';
+import { CommandInputMessage, jsBinaryEncode, UInt16, UInt8 } from '@fe-db/proto';
 import { cmdKind, cmdStatus, CommandPending } from '@db/type';
 import { generateUuidV7 } from '@db/utl';
 import { main } from '../config.ts';
-import { JnlEntryInput, jnlEntryKind } from '@db/jnl';
-import { serialize } from 'node:v8';
+import { JnlEntry, jnlEntryKind } from '@db/jnl';
+import { LifecycleComponent } from '@antman/lifecycle';
 
 const pageHandleOpts: Deno.OpenOptions = { append: true, create: true };
 
-export const journalWriter = new (class JournalWriter implements Component {
-  name: 'JournalWriter';
+export const journalWriter = new (class JournalWriter extends LifecycleComponent {
   pageNo: number;
   dirPath: string;
-  status: 'pending' | 'running' | 'crashed';
   #currentPage?: Deno.FsFile;
   #nextPage?: Deno.FsFile;
+  #encode = jsBinaryEncode();
   constructor() {
-    this.name = 'JournalWriter';
-    this.status = 'pending';
+    super();
     this.dirPath = `${main.cfg.DATA_DIRECTORY}/jnl`;
     this.pageNo = 0;
   }
@@ -30,25 +27,22 @@ export const journalWriter = new (class JournalWriter implements Component {
     this.#nextPage = await this.#openPage(1);
   }
   async #initJournalDirectories() {
-    await Deno.mkdir(`${this.dirPath}/archive`, { recursive: true });
+    await Promise.all([
+      Deno.mkdir(`${this.dirPath}/archive`, { recursive: true }),
+      Deno.mkdir(`${this.dirPath}/snap`, { recursive: true }),
+    ]);
   }
   async #listPages(): Promise<number[]> {
     const paths: number[] = [];
     for await (const e of Deno.readDir(this.dirPath)) e.isFile && paths.push(Number(e.name));
-    return paths.sort();
+    return paths.sort((a, b) => a - b);
   }
   async #openPage(offset = 0) {
     return await Deno.open(`${this.dirPath}/${this.pageNo + offset}`, pageHandleOpts);
   }
-  async close() {
-    // .
-  }
-  getStatus() {
-    return Promise.resolve(this.status);
-  }
-  async #writeEntry(entry: JnlEntryInput) {
+  async #writeEntry(entry: JnlEntry) {
     if (!this.#currentPage) throw new Error('Attempted to write before journal writer initialized');
-    await this.#currentPage.write(serialize(entry));
+    await this.#currentPage.write(this.#encode(entry));
     await this.#currentPage.syncData();
   }
   async writeCommand(cmd: CommandInputMessage, connId: string) {
@@ -58,6 +52,10 @@ export const journalWriter = new (class JournalWriter implements Component {
       connId,
     });
   }
+  async close() {
+    // .
+  }
+  checkHealth: undefined;
 })();
 
 const adaptCommandInput = (command: CommandInputMessage): CommandPending => ({

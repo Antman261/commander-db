@@ -7,7 +7,7 @@ export const BinaryEncodeStream = <Message>(
   opt: Opt = defaultOpt(),
 ): TransformStream<Message, Uint8Array> =>
   toTransformStream(async function* (src) {
-    const { maxBodyBytes } = { ...defaultOpt, ...opt } as Required<Opt>;
+    const { maxBodyBytes } = { ...defaultOpt(), ...opt } as Required<Opt>;
     for await (const msg of src) {
       const msgData = serialize(msg);
       if (msgData.byteLength > maxBodyBytes) {
@@ -18,3 +18,16 @@ export const BinaryEncodeStream = <Message>(
       yield bytes.concat([msgHeader, msgData]);
     }
   });
+
+export const jsBinaryEncode = (opt: Opt = defaultOpt()) => {
+  const { maxBodyBytes } = { ...defaultOpt(), ...opt } as Required<Opt>;
+  return <V>(msg: V): Uint8Array => {
+    const msgData = serialize(msg);
+    if (msgData.byteLength > maxBodyBytes) {
+      throw new RangeError(`Max message length exceeded (${maxBodyBytes} bytes)`);
+    }
+    const msgHeader = new Uint8Array(HEADER_BYTES);
+    new Uint32Array(msgHeader.buffer)[0] = msgData.byteLength;
+    return bytes.concat([msgHeader, msgData]);
+  };
+};
