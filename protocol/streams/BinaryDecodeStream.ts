@@ -3,9 +3,11 @@ import { BinaryRingBuffer } from '@proto/util';
 import { HEADER_BYTES, type Opt, verifyOptions } from './options.ts';
 import { toTransformStream } from '@std/streams';
 
+export type DecodedMessageTuple<Message> = [Message, number];
+
 export const BinaryDecodeStream = <Message>(
   opt?: Opt,
-): TransformStream<Uint8Array, Message> =>
+): TransformStream<Uint8Array, DecodedMessageTuple<Message>> =>
   toTransformStream(async function* (src) {
     // I could lower the default memory allocation by adding overflow support -- if the data length is greater than the pre allocated buffer, we could take the hit and allocate more memory. This might be more efficient overall because it will allow greater number of concurrent connections
     const { maxBodyBytes } = verifyOptions(opt);
@@ -30,7 +32,7 @@ export const BinaryDecodeStream = <Message>(
            */
           if (isSizable()) setMsgLength();
           if (hasMsgLength()) {
-            yield decodeMsg();
+            yield [decodeMsg(), msgLength];
             msgLength = 0;
           }
         }

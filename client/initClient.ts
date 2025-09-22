@@ -18,7 +18,7 @@ import {
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';
 
-type CommandHandler = (command: CommandInputMessage) => Promise<PotentialEvent[] | Error | string>;
+type CommandHandler = (command: CommandMessage) => Promise<PotentialEvent[] | Error | string>;
 
 type Connection = {
   connection: Deno.TcpConn;
@@ -54,7 +54,7 @@ export const initClient = (opt?: ConnectionConfig) => {
       const { connection, send, close } = await connect();
       const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMessage>());
       const commandProcessingLoop = (async () => {
-        for await (const msg of commandStream) {
+        for await (const [msg] of commandStream) {
           switch (msg.k) {
             case dbMsg.commandSubscriptionEnded:
               return await close();
@@ -83,7 +83,7 @@ export const initClient = (opt?: ConnectionConfig) => {
         unsubscribe: () => send(endEventSubscription()).then(close),
       };
     },
-    async issueCommand(cmd: CommandMessage) {
+    async issueCommand(cmd: CommandInputMessage) {
       const { send } = await connectLazily();
       await send(issueCommand(cmd));
     },

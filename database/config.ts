@@ -3,13 +3,14 @@ import { LifecycleComponent } from '@antman/lifecycle';
 type CdbConfig = {
   DEV_MODE?: string;
   DATA_DIRECTORY: string;
+  SNAPSHOT_INTERVAL: string;
 };
 
 export const main = new (class Main extends LifecycleComponent {
   cfg: CdbConfig;
   constructor() {
     super();
-    this.cfg = { DATA_DIRECTORY: '/var/cdb/data' };
+    this.cfg = { DATA_DIRECTORY: '/var/cdb/data', SNAPSHOT_INTERVAL: '1000' };
   }
   async start() {
     this.cfg = Deno.env.toObject() as CdbConfig;

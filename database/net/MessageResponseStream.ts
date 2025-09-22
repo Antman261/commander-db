@@ -1,13 +1,13 @@
 import { journalWriter } from '@db/jnl';
 import { isStrictlyNever } from '@antman/formic-utils';
 import { cmdSubManager } from '@db/translation';
-import { ClientMessage, clientMsg, DbMessage } from '@fe-db/proto';
+import { ClientMessage, clientMsg, DbMessage, DecodedMessageTuple } from '@fe-db/proto';
 
-export class MessageResponseStream extends TransformStream<ClientMessage, DbMessage> {
+export class MessageResponseStream extends TransformStream<DecodedMessageTuple<ClientMessage>, DbMessage> {
   constructor(id: string) {
     super({
       start() {},
-      transform(msg, controller) {
+      transform([msg], controller) {
         const sendMsg = controller.enqueue.bind(controller);
         try {
           console.log('Received message:', msg);
