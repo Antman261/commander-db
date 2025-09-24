@@ -1,26 +1,41 @@
 import { ensureFile } from '@std/fs';
-import { main } from '../config.ts';
+import { configManager } from '../config.ts';
 import { LifecycleComponent } from '@antman/lifecycle';
 import { BinaryDecodeStream } from '@fe-db/proto';
+import { tryOpenFile } from '@db/disk';
 import { JnlEntry } from '@db/jnl';
+import { commandManager } from '@db/state';
 import { callWith } from '@antman/formic-utils';
+import { delay } from '@std/async/delay';
 
 type Snapshot = Record<'pageNo' | 'seekPos', number>;
+type Snapshotter = (pageNo: number) => Promise<void>;
+type EntryReader = (entry: JnlEntry) => Promise<void>;
 
 export const journalReader = new (class JournalReader extends LifecycleComponent {
   #pageNo = -1;
-  #snapshotInterval = Number(main.cfg.SNAPSHOT_INTERVAL);
-  #snapshotCallbacks: (() => Promise<void>)[] = [];
-  #entryCallbacks: ((entry: JnlEntry) => Promise<void>)[] = [];
-  dirPath = `${main.cfg.DATA_DIRECTORY}/jnl`;
+  #snapshotInterval = Number(configManager.cfg.SNAPSHOT_INTERVAL);
+  #snapshotters: Snapshotter[] = [];
+  #entryReaders: EntryReader[] = [];
+  dirPath = `${configManager.cfg.DATA_DIRECTORY}/jnl`;
   snapPath = `${this.dirPath}/snap/reader.snp`;
-  #currentPage?: Deno.FsFile;
   #snapshotPromise?: Promise<void>;
   #mainLoopPromise = Promise.resolve();
   #status: 'pending' | 'running' | 'closing' | 'closed' = 'pending';
   checkHealth: undefined;
+  constructor() {
+    super();
+  }
+  registerSnapshotter(sp: Snapshotter) {
+    this.#snapshotters.push(sp);
+  }
+  registerEntryReader(r: EntryReader) {
+    this.#entryReaders.push(r);
+  }
   async start() {
     await this.#loadSnapshot();
+    this.register(commandManager);
+    await this.startChildren();
     this.#status = 'running';
     this.#mainLoopPromise = this.#mainLoop();
   }
@@ -38,21 +53,26 @@ export const journalReader = new (class JournalReader extends LifecycleComponent
     while (this.#status === 'running') {
       counter = (counter + 1) % this.#snapshotInterval;
       if (counter === 0) {
-        await Promise.all(this.#snapshotCallbacks.map(callWith()));
+        await Promise.all(this.#snapshotters.map(callWith(this.#pageNo)));
         // snapshots need to all fail or all completev-- could potentially solve this problem by providing a page number with the snapshot callback, so that all downstream components can restore from the previous snapshot if the journal reader fails to save its snapshot
         await this.#saveSnapshot();
       }
       await this.#readPage();
-      this.#pageNo++;
     }
   }
   async #readPage() {
-    this.#currentPage = await Deno.open(`${this.dirPath}/${this.#pageNo}`, { read: true });
-    const pageStream = this.#currentPage.readable.pipeThrough(BinaryDecodeStream<JnlEntry>());
+    const currentPage = await tryOpenFile(`${this.dirPath}/${this.#pageNo}`, { read: true });
+    if (currentPage instanceof Error) {
+      await delay(3);
+      return;
+    }
+    const pageStream = currentPage.readable.pipeThrough(BinaryDecodeStream<JnlEntry>());
 
     for await (const [entry] of pageStream) {
-      await Promise.all(this.#entryCallbacks.map(callWith(entry)));
+      await Promise.all(this.#entryReaders.map(callWith(entry)));
     }
+    currentPage.close();
+    this.#pageNo++;
   }
   async #loadSnapshot(): Promise<void> {
     await ensureFile(this.snapPath);

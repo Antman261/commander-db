@@ -6,18 +6,14 @@ type CdbConfig = {
   SNAPSHOT_INTERVAL: string;
 };
 
-export const main = new (class Main extends LifecycleComponent {
+export const configManager = new (class Main extends LifecycleComponent {
   cfg: CdbConfig;
   constructor() {
     super();
     this.cfg = { DATA_DIRECTORY: '/var/cdb/data', SNAPSHOT_INTERVAL: '1000' };
   }
   async start() {
-    this.cfg = Deno.env.toObject() as CdbConfig;
-    this.cfg.DEV_MODE = 'true'; // todo: remove this line!
-    if (this.cfg.DEV_MODE === 'true') {
-      this.cfg.DATA_DIRECTORY = await Deno.makeTempDir({ prefix: 'commander_db' });
-    }
+    this.cfg = { ...this.cfg, ...Deno.env.toObject() as CdbConfig };
   }
   close() {
     return Promise.resolve();

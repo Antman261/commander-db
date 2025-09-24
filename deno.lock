@@ -1,8 +1,10 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
+    "jsr:@antman/bool@~0.1.1": "0.1.1",
+    "jsr:@antman/lifecycle@~0.2.3": "0.2.3",
     "jsr:@std/assert@^1.0.7": "1.0.11",
-    "jsr:@std/bytes@^1.0.5": "1.0.5",
+    "jsr:@std/async@^1.0.14": "1.0.14",
     "jsr:@std/expect@*": "1.0.7",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "npm:@types/node@*": "22.5.4",
@@ -11,6 +13,16 @@
     "npm:tinybench@*": "3.1.1"
   },
   "jsr": {
+    "@antman/bool@0.1.1": {
+      "integrity": "18ea66945454ca04e32571db389ee2c35eaf6005927e6e881567ce7fd1c39114"
+    },
+    "@antman/lifecycle@0.2.3": {
+      "integrity": "54141f72f1e793ae0634be3c02a8b6fc218811b174e24efeacc5af1d84775a12",
+      "dependencies": [
+        "jsr:@antman/bool",
+        "jsr:@std/async"
+      ]
+    },
     "@std/assert@1.0.7": {
       "integrity": "64ce9fac879e0b9f3042a89b3c3f8ccfc9c984391af19e2087513a79d73e28c3",
       "dependencies": [
@@ -23,8 +35,8 @@
         "jsr:@std/internal"
       ]
     },
-    "@std/bytes@1.0.5": {
-      "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
+    "@std/async@1.0.14": {
+      "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
     },
     "@std/expect@1.0.7": {
       "integrity": "3904afa77cfe5c45dd2cd2c476e6fc5b6f57103d712890f0783d74c19d4b05a9",
@@ -59,7 +71,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/bytes@^1.0.5"
+      "jsr:@antman/lifecycle@~0.2.3"
     ]
   }
 }

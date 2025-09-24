@@ -1,7 +1,7 @@
 import { CommandInputMessage, jsBinaryEncode, UInt16, UInt8 } from '@fe-db/proto';
 import { cmdKind, cmdStatus, CommandPending } from '@db/type';
 import { generateUuidV7 } from '@db/utl';
-import { main } from '../config.ts';
+import { configManager } from '../config.ts';
 import { JnlEntry, jnlEntryKind } from '@db/jnl';
 import { LifecycleComponent } from '@antman/lifecycle';
 
@@ -15,7 +15,7 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
   #encode = jsBinaryEncode();
   constructor() {
     super();
-    this.dirPath = `${main.cfg.DATA_DIRECTORY}/jnl`;
+    this.dirPath = `${configManager.cfg.DATA_DIRECTORY}/jnl`;
     this.pageNo = 0;
   }
   async start() {
