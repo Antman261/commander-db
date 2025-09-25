@@ -12,8 +12,9 @@ export const configManager = new (class Main extends LifecycleComponent {
     super();
     this.cfg = { DATA_DIRECTORY: '/var/cdb/data', SNAPSHOT_INTERVAL: '1000' };
   }
-  async start() {
+  start() {
     this.cfg = { ...this.cfg, ...Deno.env.toObject() as CdbConfig };
+    return Promise.resolve();
   }
   close() {
     return Promise.resolve();

@@ -1,5 +1,2 @@
 {
-  "imports": {
-    "@antman/lifecycle": "jsr:@antman/lifecycle@^0.2.3"
-  }
 }

@@ -3,11 +3,11 @@
   "specifiers": {
     "jsr:@antman/bool@~0.1.1": "0.1.1",
     "jsr:@antman/formic-utils@0.4": "0.4.0",
-    "jsr:@antman/lifecycle@~0.2.2": "0.2.2",
+    "jsr:@antman/lifecycle@0.3.1": "0.3.1",
     "jsr:@std/assert@1": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/async@*": "1.0.11",
-    "jsr:@std/async@^1.0.11": "1.0.14",
+    "jsr:@std/async@^1.0.11": "1.0.11",
     "jsr:@std/async@^1.0.14": "1.0.14",
     "jsr:@std/bytes@*": "1.0.4",
     "jsr:@std/bytes@^1.0.5": "1.0.6",
@@ -33,8 +33,8 @@
     "@antman/formic-utils@0.4.0": {
       "integrity": "c3bb3338b6b7c9c417d6046c16dd71c01e1ffe2a02d0703834a653e57b9e39e8"
     },
-    "@antman/lifecycle@0.2.2": {
-      "integrity": "85c6e2d74c0bed79cafdf014c662536819a24c1101a66a454e408320550a15f9",
+    "@antman/lifecycle@0.3.1": {
+      "integrity": "9c71a1b6b6a4a9cfe4e4e15ceafe3e7c6b200c28343dddb0cb47d0265d7451d6",
       "dependencies": [
         "jsr:@antman/bool",
         "jsr:@std/async@^1.0.14"
@@ -123,7 +123,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@antman/formic-utils@0.4",
-      "jsr:@antman/lifecycle@~0.2.2",
+      "jsr:@antman/lifecycle@0.3.1",
       "jsr:@std/assert@1",
       "jsr:@std/async@^1.0.11",
       "jsr:@std/bytes@^1.0.5",
