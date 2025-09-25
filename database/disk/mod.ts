@@ -1,1 +1,1 @@
-export * from './openFile.ts';
+export * from './file.ts';
