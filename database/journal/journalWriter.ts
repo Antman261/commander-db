@@ -43,7 +43,8 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
   async #writeEntry(entry: JnlEntry) {
     if (!this.#currentPage) throw new Error('Attempted to write before journal writer initialized');
     await this.#currentPage.write(this.#encode(entry));
-    await this.#currentPage.syncData();
+    await this.#currentPage.sync();
+    // todo implement system to change to the next page
   }
   async writeCommand(cmd: CommandInputMessage, connId: string) {
     await this.#writeEntry({
@@ -52,8 +53,9 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
       connId,
     });
   }
+  // async startCommand
   async close() {
-    // .
+    // todo
   }
   checkHealth: undefined;
 })();

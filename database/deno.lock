@@ -3,12 +3,11 @@
   "specifiers": {
     "jsr:@antman/bool@~0.1.1": "0.1.1",
     "jsr:@antman/formic-utils@0.4": "0.4.0",
-    "jsr:@antman/lifecycle@0.3.1": "0.3.1",
+    "jsr:@antman/lifecycle@0.4": "0.4.0",
     "jsr:@std/assert@1": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/async@*": "1.0.11",
     "jsr:@std/async@^1.0.11": "1.0.11",
-    "jsr:@std/async@^1.0.14": "1.0.14",
     "jsr:@std/bytes@*": "1.0.4",
     "jsr:@std/bytes@^1.0.5": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
@@ -33,11 +32,10 @@
     "@antman/formic-utils@0.4.0": {
       "integrity": "c3bb3338b6b7c9c417d6046c16dd71c01e1ffe2a02d0703834a653e57b9e39e8"
     },
-    "@antman/lifecycle@0.3.1": {
-      "integrity": "9c71a1b6b6a4a9cfe4e4e15ceafe3e7c6b200c28343dddb0cb47d0265d7451d6",
+    "@antman/lifecycle@0.4.0": {
+      "integrity": "35025dc8207b873326e4aa05b4a231eed222a1bbd343cfe5991ff1e7aefe51db",
       "dependencies": [
-        "jsr:@antman/bool",
-        "jsr:@std/async@^1.0.14"
+        "jsr:@antman/bool"
       ]
     },
     "@std/assert@1.0.8": {
@@ -54,9 +52,6 @@
     },
     "@std/async@1.0.11": {
       "integrity": "eee0d3405275506638a9c8efaa849cf0d35873120c69b7caa1309c9a9e5b6f85"
-    },
-    "@std/async@1.0.14": {
-      "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
     },
     "@std/bytes@1.0.4": {
       "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
@@ -123,7 +118,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@antman/formic-utils@0.4",
-      "jsr:@antman/lifecycle@0.3.1",
+      "jsr:@antman/lifecycle@0.4",
       "jsr:@std/assert@1",
       "jsr:@std/async@^1.0.11",
       "jsr:@std/bytes@^1.0.5",

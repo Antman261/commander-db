@@ -1,5 +1,4 @@
 import { Lifecycle } from '@antman/lifecycle';
-import { commandState } from '@db/state';
 import { connectionManager } from '@db/net';
 import { configManager } from './config.ts';
 import { journalReader, journalWriter } from '@db/jnl';
@@ -10,9 +9,8 @@ if (import.meta.main) {
   const lifecycle = new Lifecycle();
   lifecycle.all(console.log);
   lifecycle.register(configManager);
-  lifecycle.register(connectionManager);
   lifecycle.register(journalWriter);
   lifecycle.register(journalReader);
-  lifecycle.register(commandState); // TODO: Implement me!
+  lifecycle.register(connectionManager);
   await lifecycle.start();
 }
