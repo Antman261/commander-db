@@ -34,7 +34,7 @@ export type CommandPending = {
   // output: unknown; -- a pending command can't have an output yet
   metadata: NonNullable<CommandInputMessage['metadata']>;
   parentCommandId?: CommandInputMessage['parentCommandId'];
-  runs: UInt8;
+  runs: CommandRun[];
   maxRuns: UInt8;
   runCooldownMs: UInt8;
   runTimeoutSeconds: UInt8;
@@ -45,7 +45,7 @@ export type CommandPending = {
 
 export type CommandRunning = Omit<CommandPending, 'status'> & {
   status: CmdStatuses['running'];
-  attemptId: CommandAttempt['id'];
+  runId: CommandRun['id'];
   beganAt: DateTime;
 };
 
@@ -55,7 +55,7 @@ export type CommandExhausted =
     status: CmdStatuses['exhausted'];
     beganAt: DateTime;
     exhaustedAt: DateTime;
-    attempts: CommandAttempt[]; // will be stored in a separate file from running and pending stacks
+    runs: CommandRun[]; // will be stored in a separate file from running and pending stacks
   };
 
 export type CommandCompleted =
@@ -65,10 +65,10 @@ export type CommandCompleted =
     beganAt: DateTime;
     completedAt: DateTime;
     output: Obj;
-    attempts: CommandAttempt[];
+    runs: CommandRun[];
   };
 
-export type CommandAttempt = {
+export type CommandRun = {
   id: Bigint128; // otel span id
   commandId: CommandPending['id'];
   appInstanceId: string;
@@ -96,4 +96,4 @@ export type CommandResultCache = {
 /**
  * Keeps track of each command attempted by application instances. Key-value store of instance id and an array of attempts
  */
-export type CommandAttemptsMap = Record<string, Date[]>;
+export type CommandRunsMap = Record<string, Date[]>;

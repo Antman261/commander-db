@@ -4,13 +4,12 @@ import { RingBuffer } from '@db/utl';
 import { handleConnection } from './conn.ts';
 
 let listener: Deno.TcpListener;
-const connections = new RingBuffer({ size: 500 }); // todo: determine number of connections based on available memory
+const connections = new RingBuffer({ size: 50 }); // todo: determine number of connections based on available memory
 
 function openSocketServer(): void {
   if (listener) return;
   const args = parseArgs(Deno.args);
   const port = args.port ?? 8092;
-  console.log(`Database starting on port ${port}`);
 
   listener = Deno.listen({ hostname: '127.0.0.1', port, transport: 'tcp' });
   (async () => {
@@ -29,7 +28,6 @@ class ConnectionManager extends LifecycleComponent {
   async close() {
     await Promise.all(connections.values());
   }
-  checkHealth: undefined;
 }
 
 export const connectionManager = new ConnectionManager();

@@ -15,7 +15,7 @@ export const initAppInstance = (args: string[], kind: Kind): AppInstance => {
   try {
     const port = requestPort();
     args.push(`--port=${port}`);
-    const process = toPipedDeno(args).spawn();
+    const process = toPipedDeno(args, kind).spawn();
     const dbLog = makeLogger(kind, process.pid);
     (async () => {
       for await (
@@ -48,5 +48,14 @@ export const initAppInstance = (args: string[], kind: Kind): AppInstance => {
   }
 };
 
-const toPipedDeno = (args: string[]) =>
-  new Deno.Command(Deno.execPath(), { args, stdout: 'piped', stderr: 'piped' });
+const toPipedDeno = (args: string[], kind: Kind) =>
+  new Deno.Command(Deno.execPath(), {
+    args,
+    stdout: 'piped',
+    stderr: 'piped',
+    env: {
+      DATA_DIRECTORY: `../test-data`,
+      OTEL_DENO: 'true',
+      OTEL_SERVICE_NAME: kind,
+    },
+  });

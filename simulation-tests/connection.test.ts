@@ -18,7 +18,7 @@ Deno.test(
       async ({ simCtx, onEnd }) => {
         const [db] = simCtx.databaseInstances;
         const { promise: receivedCommand, handler } = makeCommandSpy();
-        const { startCommandSubscription } = initClient({ port: db.port });
+        const { startCommandSubscription } = await initClient({ port: db.port });
         onEnd((await startCommandSubscription(handler)).unsubscribe);
         expect(await receivedCommand).toEqual({ name: 'hello!' });
       },
@@ -33,7 +33,7 @@ Deno.test(
     withSim(
       async ({ simCtx }) => {
         const [db] = simCtx.databaseInstances;
-        const client = initClient({ port: db.port });
+        const client = await initClient({ port: db.port });
         const events: string[] = [];
 
         const subPromises = Array.from({ length: 50 }).map(async (_, idx) => {

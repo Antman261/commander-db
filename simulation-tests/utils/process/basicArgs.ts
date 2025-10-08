@@ -4,7 +4,7 @@ const defaultOpt = (): Required<Opt> => ({ debug: false, otel: false });
 
 export const toDenoArgs = <O extends Opt>(opt: O | undefined) => {
   const { debug, otel } = { ...defaultOpt(), ...opt };
-  const args = ['run', '--allow-net'];
+  const args = ['run', '--allow-net', '--allow-env', '--allow-write', '--allow-read'];
   debug && args.push('--inspect');
   otel && args.push('--unstable-otel');
   return args;

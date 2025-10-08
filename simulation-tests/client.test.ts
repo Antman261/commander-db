@@ -1,6 +1,6 @@
 import { expect } from '@std/expect';
 import { makeSimTest } from './utils/harness/makeTestFrame.ts';
-import { delay } from '@std/async/delay';
+import { delay } from '@std/async';
 
 const withSim = makeSimTest({
   databases: [{}],

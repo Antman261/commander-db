@@ -11,6 +11,7 @@ export type DbMessages = {
   eventSubGranted: { k: 3 };
   eventSubEnded: { k: 4 };
   events: { k: 5; e: Event[] };
+  cmdIssued: { k: 6; cmdId: CommandMessage['id'] };
 };
 export type DbMessage = DbMessages[keyof DbMessages];
 export const dbMsg = {
@@ -19,6 +20,8 @@ export const dbMsg = {
   commandAssigned: 2,
   eventSubscriptionGranted: 3,
   eventSubscriptionEnded: 4,
+  eventsDispatched: 5,
+  commandIssued: 6,
 } as const;
 
 export const commandSubscriptionGranted = (): DbMessages['cmdSubGranted'] => ({ k: 0 });
@@ -27,3 +30,4 @@ export const commandAssigned = (cmd: CommandMessage): DbMessages['cmdAssigned'] 
 export const eventSubscriptionGranted = (): DbMessages['eventSubGranted'] => ({ k: 3 });
 export const eventSubscriptionEnded = (): DbMessages['eventSubEnded'] => ({ k: 4 });
 export const eventsDispatched = (e: Event[]): DbMessages['events'] => ({ k: 5, e });
+export const commandIssued = (cmdId: CommandMessage['id']): DbMessages['cmdIssued'] => ({ k: 6, cmdId });

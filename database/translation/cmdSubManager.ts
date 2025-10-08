@@ -1,5 +1,6 @@
 import { delay } from '@std/async';
 import { is, isUndefined } from '@antman/formic-utils';
+import { LifecycleComponent } from '@antman/lifecycle';
 import { CommandMessage, DbMessage } from '@fe-db/proto';
 import { CommandSubscriber } from './CommandSubscriber.ts';
 
@@ -54,3 +55,8 @@ export const cmdSubManager = {
   dispatchCommand,
   onCommandResult,
 };
+
+class CommandSubscriptionManager extends LifecycleComponent {
+  async start() {
+  }
+}

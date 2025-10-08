@@ -1,1 +1,1 @@
-export * from './commandManager.ts';
+export * from './commands/commandState.ts';

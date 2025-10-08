@@ -7,10 +7,10 @@ const args = parseArgs(Deno.args, { string: ['port'], collect: ['dbPort'] });
 const port = Number(args.port ?? 8092);
 const app = new Hono();
 const counters: Record<string, number> = {};
-const feDb = initClient({ port: Number(args.dbPort[0]) }); // todo: make client handle this
+const feDb = await initClient({ port: Number(args.dbPort[0]) }); // todo: make client handle this
 feDb.startCommandSubscription(async (cmd) => {
   console.log('Received command:', cmd);
-  if (cmd.name === 'start-counter') return [{ kind: 'counter-started' }];
+  if (cmd.name === 'start-counter') return [{ kind: 'counter-started', name: cmd.name }];
   return [];
 });
 const eventSubscription = await feDb.startEventSubscription(0n);
@@ -18,7 +18,7 @@ const eventSubscription = await feDb.startEventSubscription(0n);
   for await (const event of eventSubscription.eventStream) {
     console.log('Received event:', event);
     // @ts-expect-error .
-    if (event.type === 'counter-started') counters[event.aggregateId] ??= 0;
+    if (event.kind === 'counter-started') counters[event.subjectId] ??= 0;
   }
   console.log('Event stream subscription ended');
 })();

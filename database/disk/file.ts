@@ -17,6 +17,23 @@ export const readJsonFile = async <T>(
   const text = await Deno.readTextFile(...args);
   return text === '' ? undefined : JSON.parse(text);
 };
+export const tryReadJsonFile = async <T>(
+  ...args: Parameters<ReadTextFile>
+): Promise<T | undefined | Error> => {
+  // todo: Randomly inject failures here (during tests)
+  try {
+    return await readJsonFile(...args);
+  } catch (error) {
+    if (error instanceof Error) return error;
+  }
+};
+export const tryMakeDir = async (path: string): Promise<void> => {
+  try {
+    await Deno.mkdir(path, { recursive: true });
+  } catch (error) {
+    return;
+  }
+};
 export const writeJsonFile = (
   path: string | URL,
   data: unknown,

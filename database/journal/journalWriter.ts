@@ -2,20 +2,28 @@ import { CommandInputMessage, jsBinaryEncode, UInt16, UInt8 } from '@fe-db/proto
 import { cmdKind, cmdStatus, CommandPending } from '@db/type';
 import { generateUuidV7 } from '@db/utl';
 import { configManager } from '../config.ts';
-import { JnlEntry, jnlEntryKind } from '@db/jnl';
+import { entryKind, JournalEntry } from '@db/jnl';
 import { LifecycleComponent } from '@antman/lifecycle';
+import { tryMakeDir } from '@db/disk';
 
 const pageHandleOpts: Deno.OpenOptions = { append: true, create: true };
 
 export const journalWriter = new (class JournalWriter extends LifecycleComponent {
   pageNo: number;
-  dirPath: string;
+  get dirPath(): string {
+    return `${configManager.cfg.DATA_DIRECTORY}/jnl`;
+  }
+  get archivePath(): string {
+    return `${this.dirPath}/archive`;
+  }
+  get dataPath(): string {
+    return `${this.dirPath}/data`;
+  }
   #currentPage?: Deno.FsFile;
   #nextPage?: Deno.FsFile;
   #encode = jsBinaryEncode();
   constructor() {
     super();
-    this.dirPath = `${configManager.cfg.DATA_DIRECTORY}/jnl`;
     this.pageNo = 0;
   }
   async start() {
@@ -27,37 +35,41 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
     this.#nextPage = await this.#openPage(1);
   }
   async #initJournalDirectories() {
-    await Promise.all([
-      Deno.mkdir(`${this.dirPath}/archive`, { recursive: true }),
-      Deno.mkdir(`${this.dirPath}/snap`, { recursive: true }),
-    ]);
+    await Promise.all([tryMakeDir(this.archivePath), tryMakeDir(this.dataPath)]);
   }
   async #listPages(): Promise<number[]> {
     const paths: number[] = [];
-    for await (const e of Deno.readDir(this.dirPath)) e.isFile && paths.push(Number(e.name));
+    for await (const e of Deno.readDir(this.dataPath)) {
+      e.isFile && paths.push(Number(e.name));
+    }
     return paths.sort((a, b) => a - b);
   }
   async #openPage(offset = 0) {
-    return await Deno.open(`${this.dirPath}/${this.pageNo + offset}`, pageHandleOpts);
+    return await Deno.open(`${this.dataPath}/${this.pageNo + offset}`, pageHandleOpts);
   }
-  async #writeEntry(entry: JnlEntry) {
+  async #writeEntry(entry: JournalEntry) {
     if (!this.#currentPage) throw new Error('Attempted to write before journal writer initialized');
     await this.#currentPage.write(this.#encode(entry));
     await this.#currentPage.sync();
     // todo implement system to change to the next page
   }
   async writeCommand(cmd: CommandInputMessage, connId: string) {
+    console.debug('Writing command issued journal entry');
+    const command = adaptCommandInput(cmd);
     await this.#writeEntry({
-      k: jnlEntryKind.cmdIssued,
-      cmd: adaptCommandInput(cmd),
+      k: entryKind.cmdIssued,
+      cmd: command,
       connId,
+      writtenAt: Date.now(),
     });
+    console.debug('Command written');
+    return command.id;
   }
   // async startCommand
   async close() {
+    await this.#currentPage?.close();
     // todo
   }
-  checkHealth: undefined;
 })();
 
 const adaptCommandInput = (command: CommandInputMessage): CommandPending => ({
@@ -65,7 +77,7 @@ const adaptCommandInput = (command: CommandInputMessage): CommandPending => ({
   kind: cmdKind.standard,
   status: cmdStatus.pending,
   metadata: {}, // todo inject open telemetry context
-  runs: new UInt8(0),
+  runs: [],
   maxRuns: new UInt8(3),
   runCooldownMs: new UInt8(2000),
   runTimeoutSeconds: new UInt8(5),

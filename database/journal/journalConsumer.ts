@@ -1,35 +1,50 @@
 import { LifecycleComponent } from '@antman/lifecycle';
 import { configManager } from '../config.ts';
-import { readJsonFile, removeFile, writeJsonFileClean } from '../disk/file.ts';
-import { JnlEntry } from './entries.ts';
+import { readJsonFile, removeFile, tryReadJsonFile, writeJsonFileClean } from '@db/disk';
+import { JournalEntry } from './entries.ts';
+import { isUndefined } from '@antman/bool';
 
-export abstract class JournalConsumer<T> extends LifecycleComponent {
+type Reducer<State> = (state: State, entry: JournalEntry) => void;
+
+export abstract class JournalConsumer<State = unknown> extends LifecycleComponent {
   abstract readonly consumerPathComponent: string;
 
-  abstract getInitialState(): T;
-  abstract state: T;
-  get #dirPath() {
-    return `${configManager.cfg.DATA_DIRECTORY}/state/${this.consumerPathComponent}/`;
+  protected abstract getInitialState(): State;
+  protected abstract state: State;
+
+  #reducer?: Reducer<State>;
+  constructor() {
+    super();
   }
-  get #snapPath() {
-    return `${this.#dirPath}/snap`;
+  protected registerReducer(reducer: Reducer<State>): void {
+    this.#reducer = reducer;
   }
   #toSnapPath(pageNo: number) {
-    return `${this.#snapPath}/${pageNo}`;
+    return `${configManager.cfg.DATA_DIRECTORY}/state/${this.consumerPathComponent}/snap/${pageNo}`;
   }
   start(): Promise<void> {
+    if (isUndefined(this.#reducer)) {
+      throw new Error('Cannot start a derivative of JournalConsumer without registering a reducer');
+    }
     return Promise.resolve();
   }
   close(): Promise<void> {
     return Promise.resolve();
   }
-  abstract readEntry(entry: JnlEntry, pageNo: number): Promise<void>;
+  processEntry(entry: JournalEntry): void {
+    this.#reducer?.(this.state, entry);
+  }
   async saveSnapshot(pageNo: number): Promise<void> {
     await writeJsonFileClean(this.#toSnapPath(pageNo), this.state);
     const defunctPageNo = pageNo - 2;
     if (defunctPageNo > -1) await removeFile(this.#toSnapPath(defunctPageNo));
   }
   async loadSnapshot(pageNo: number): Promise<void> {
-    this.state = await readJsonFile<T>(this.#toSnapPath(pageNo)) ?? this.getInitialState();
+    const result = await tryReadJsonFile<State>(this.#toSnapPath(pageNo));
+    if (result instanceof Error) {
+      this.state = this.getInitialState();
+      return;
+    }
+    this.state = result ?? this.getInitialState();
   }
 }
