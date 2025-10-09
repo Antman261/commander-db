@@ -1,6 +1,6 @@
 import { Lifecycle } from '@antman/lifecycle';
 import { connectionManager } from '@db/net';
-import { configManager } from './config.ts';
+import { configManager } from '@db/cfg';
 import { journalReader, journalWriter } from '@db/jnl';
 
 const initializeDatabase = async () => {

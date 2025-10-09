@@ -1,2 +1,5 @@
 {
+  "tasks": {
+    "start:otel": "./bin/start-grafana.sh"
+  }
 }

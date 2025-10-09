@@ -1,6 +1,6 @@
 import { LifecycleComponent } from '@antman/lifecycle';
-import { configManager } from '../config.ts';
-import { readJsonFile, removeFile, tryReadJsonFile, writeJsonFileClean } from '@db/disk';
+import { configManager } from '../config/config.ts';
+import { removeFile, tryReadJsonFile, writeJsonFileClean } from '@db/disk';
 import { JournalEntry } from './entries.ts';
 import { isUndefined } from '@antman/bool';
 

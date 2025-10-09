@@ -1,0 +1,4 @@
+{
+  "name": "@db/cfg",
+  "exports": "./mod.ts"
+}

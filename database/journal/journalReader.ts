@@ -1,5 +1,5 @@
 import { ensureFile } from '@std/fs';
-import { configManager } from '../config.ts';
+import { configManager } from '@db/cfg';
 import { BinaryDecodeStream } from '@fe-db/proto';
 import { readJsonFile, tryOpenFile, writeJsonFileClean } from '@db/disk';
 import { JournalEntry } from '@db/jnl';
@@ -28,6 +28,7 @@ class JournalReader extends LifecycleComponent {
     await this.#loadSnapshot();
     await this.startChildComponents();
     this.#mainLoopPromise = this.#mainLoop();
+    console.log('commandState.state:', commandState.state);
   }
   async #loadSnapshot(): Promise<void> {
     await ensureFile(this.#snapPath);
@@ -57,7 +58,7 @@ class JournalReader extends LifecycleComponent {
 
     const consumer = this.#getConsumers();
     for await (const [entry] of pageStream) {
-      await Promise.all(consumer.map(readEntry(entry)));
+      consumer.map(readEntry(entry));
     }
     currentPage.close();
   }

@@ -1,15 +1,15 @@
+import { LifecycleComponent } from '@antman/lifecycle';
 import { CommandInputMessage, jsBinaryEncode, UInt16, UInt8 } from '@fe-db/proto';
 import { cmdKind, cmdStatus, CommandPending } from '@db/type';
 import { generateUuidV7 } from '@db/utl';
-import { configManager } from '../config.ts';
+import { configManager } from '@db/cfg';
 import { entryKind, JournalEntry } from '@db/jnl';
-import { LifecycleComponent } from '@antman/lifecycle';
 import { tryMakeDir } from '@db/disk';
 
 const pageHandleOpts: Deno.OpenOptions = { append: true, create: true };
 
 export const journalWriter = new (class JournalWriter extends LifecycleComponent {
-  pageNo: number;
+  pageNo = 0;
   get dirPath(): string {
     return `${configManager.cfg.DATA_DIRECTORY}/jnl`;
   }
@@ -22,10 +22,6 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
   #currentPage?: Deno.FsFile;
   #nextPage?: Deno.FsFile;
   #encode = jsBinaryEncode();
-  constructor() {
-    super();
-    this.pageNo = 0;
-  }
   async start() {
     await this.#initJournalDirectories();
     const paths = await this.#listPages();

@@ -1,6 +1,4 @@
 {
-  "deno.enable": true,
-  "deno.lint": true,
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
   "[typescript]": {
@@ -10,6 +8,9 @@
     "Cooldown",
     "journaling"
   ],
+  "deno.enablePaths": ["database", "client", "protocol", "simulation-tests"],
+  // "deno.enable":true,
+  "deno.lint": true,
   "deno.codeLens.implementations": true,
   "deno.codeLens.references": true,
   "deno.codeLens.referencesAllFunctions": true,

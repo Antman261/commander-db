@@ -22,6 +22,7 @@
     "jsr:@std/internal@^1.0.9": "1.0.10",
     "jsr:@std/path@^1.1.1": "1.1.2",
     "jsr:@std/streams@^1.0.9": "1.0.11",
+    "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@types/node@*": "22.10.2",
     "npm:pure-rand@^7.0.1": "7.0.1"
   },
@@ -102,6 +103,9 @@
     }
   },
   "npm": {
+    "@opentelemetry/api@1.9.0": {
+      "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
+    },
     "@types/node@22.10.2": {
       "integrity": "sha512-Xxr6BBRCAOQixvonOye19wnzyDiUtTeqldOOmj3CkeblonbccA12PFwlufvRdrpjXxqnmUaeiU5EOA+7s5diUQ==",
       "dependencies": [
@@ -128,6 +132,7 @@
       "jsr:@std/expect@^1.0.13",
       "jsr:@std/fs@^1.0.19",
       "jsr:@std/streams@^1.0.9",
+      "npm:@opentelemetry/api@^1.9.0",
       "npm:pure-rand@^7.0.1"
     ],
     "links": {
