@@ -5,6 +5,7 @@ import { generateUuidV7 } from '@db/utl';
 import { configManager } from '@db/cfg';
 import { entryKind, JournalEntry } from '@db/jnl';
 import { tryMakeDir } from '@db/disk';
+import { Observed } from '@db/telemetry';
 
 const pageHandleOpts: Deno.OpenOptions = { append: true, create: true };
 
@@ -22,28 +23,33 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
   #currentPage?: Deno.FsFile;
   #nextPage?: Deno.FsFile;
   #encode = jsBinaryEncode();
+  @Observed
   async start() {
     await this.#initJournalDirectories();
-    const paths = await this.#listPages();
+    const paths = await this.listPages();
     // deno-lint-ignore no-non-null-assertion
     this.pageNo = paths.length === 1 ? paths.at(-1)! : paths.at(-2) ?? 0;
-    this.#currentPage = await this.#openPage();
-    this.#nextPage = await this.#openPage(1);
+    this.#currentPage = await this.openPage();
+    this.#nextPage = await this.openPage(1);
   }
+  @Observed
   async #initJournalDirectories() {
     await Promise.all([tryMakeDir(this.archivePath), tryMakeDir(this.dataPath)]);
   }
-  async #listPages(): Promise<number[]> {
+  @Observed
+  private async listPages(): Promise<number[]> {
     const paths: number[] = [];
     for await (const e of Deno.readDir(this.dataPath)) {
       e.isFile && paths.push(Number(e.name));
     }
     return paths.sort((a, b) => a - b);
   }
-  async #openPage(offset = 0) {
+  @Observed
+  private async openPage(offset = 0) {
     return await Deno.open(`${this.dataPath}/${this.pageNo + offset}`, pageHandleOpts);
   }
-  async #writeEntry(entry: JournalEntry) {
+  @Observed
+  async writeEntry(entry: JournalEntry) {
     if (!this.#currentPage) throw new Error('Attempted to write before journal writer initialized');
     await this.#currentPage.write(this.#encode(entry));
     await this.#currentPage.sync();
@@ -52,7 +58,7 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
   async writeCommand(cmd: CommandInputMessage, connId: string) {
     console.debug('Writing command issued journal entry');
     const command = adaptCommandInput(cmd);
-    await this.#writeEntry({
+    await this.writeEntry({
       k: entryKind.cmdIssued,
       cmd: command,
       connId,
@@ -62,6 +68,7 @@ export const journalWriter = new (class JournalWriter extends LifecycleComponent
     return command.id;
   }
   // async startCommand
+  @Observed
   async close() {
     await this.#currentPage?.close();
     // todo

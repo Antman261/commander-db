@@ -1,5 +1,6 @@
 import { LifecycleComponent } from '@antman/lifecycle';
-import { configManager } from '../config/config.ts';
+import { configManager } from '@db/cfg';
+import { Observed } from '@db/telemetry';
 import { removeFile, tryReadJsonFile, writeJsonFileClean } from '@db/disk';
 import { JournalEntry } from './entries.ts';
 import { isUndefined } from '@antman/bool';
@@ -31,14 +32,17 @@ export abstract class JournalConsumer<State = unknown> extends LifecycleComponen
   close(): Promise<void> {
     return Promise.resolve();
   }
+  @Observed
   processEntry(entry: JournalEntry): void {
     this.#reducer?.(this.state, entry);
   }
+  @Observed
   async saveSnapshot(pageNo: number): Promise<void> {
     await writeJsonFileClean(this.#toSnapPath(pageNo), this.state);
     const defunctPageNo = pageNo - 2;
     if (defunctPageNo > -1) await removeFile(this.#toSnapPath(defunctPageNo));
   }
+  @Observed
   async loadSnapshot(pageNo: number): Promise<void> {
     const result = await tryReadJsonFile<State>(this.#toSnapPath(pageNo));
     if (result instanceof Error) {

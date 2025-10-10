@@ -19,7 +19,7 @@
     "@std/streams": "jsr:@std/streams@^1.0.9",
     "pure-rand": "npm:pure-rand@^7.0.1"
   },
-  "workspace": ["config", "util", "type", "net", "translation", "journal", "disk", "state"],
+  "workspace": ["config", "util", "type", "net", "translation", "journal", "disk", "state", "telemetry"],
   "lint": {
     "exclude": ["**/*.md"],
     "rules": {

@@ -1,0 +1,4 @@
+{
+  "name": "@db/telemetry",
+  "exports": "./mod.ts"
+}
