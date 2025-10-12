@@ -18,8 +18,14 @@ export const BinaryDecodeStream = <Message>(
     const binBuf = new BinaryRingBuffer(maxBodyBytes);
     const isSizable = () => +msgLength === 0 && binBuf.readable >= HEADER_BYTES;
     const hasMsgLength = () => +msgLength > 0 && binBuf.readable >= +msgLength;
-    const setMsgLength = () => msgLength = new Uint32Array(binBuf.read(HEADER_BYTES))[0];
-    const decodeMsg = () => deserialize(binBuf.read(+msgLength)) as Message;
+    const setMsgLength = () => {
+      const headerBuf = binBuf.read(HEADER_BYTES);
+      msgLength = new Uint32Array(headerBuf.buffer)[0];
+    };
+    const decodeMsg = () => {
+      const buf = binBuf.read(+msgLength);
+      return deserialize(buf) as Message;
+    };
     for await (const chunk of src) {
       try {
         binBuf.write(chunk);

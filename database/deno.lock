@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@antman/bool@~0.1.1": "0.1.1",
     "jsr:@antman/formic-utils@0.4": "0.4.0",
-    "jsr:@antman/lifecycle@0.4": "0.4.0",
+    "jsr:@antman/lifecycle@~0.5.1": "0.5.1",
     "jsr:@std/assert@1": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/async@*": "1.0.11",
@@ -34,8 +34,8 @@
     "@antman/formic-utils@0.4.0": {
       "integrity": "c3bb3338b6b7c9c417d6046c16dd71c01e1ffe2a02d0703834a653e57b9e39e8"
     },
-    "@antman/lifecycle@0.4.0": {
-      "integrity": "35025dc8207b873326e4aa05b4a231eed222a1bbd343cfe5991ff1e7aefe51db",
+    "@antman/lifecycle@0.5.1": {
+      "integrity": "3e3e632a447097fb4b6e133296ec5f39c3a2f632b333b48180d51d9eb49891ad",
       "dependencies": [
         "jsr:@antman/bool"
       ]
@@ -124,7 +124,7 @@
     "dependencies": [
       "jsr:@antman/bool@~0.1.1",
       "jsr:@antman/formic-utils@0.4",
-      "jsr:@antman/lifecycle@0.4",
+      "jsr:@antman/lifecycle@~0.5.1",
       "jsr:@std/assert@1",
       "jsr:@std/async@^1.0.11",
       "jsr:@std/bytes@^1.0.5",

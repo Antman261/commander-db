@@ -1,54 +1,49 @@
-import { LifecycleComponent } from '@antman/lifecycle';
+import { LifecycleNode } from '@antman/lifecycle';
 import { configManager } from '@db/cfg';
-import { Observed } from '@db/telemetry';
 import { removeFile, tryReadJsonFile, writeJsonFileClean } from '@db/disk';
 import { JournalEntry } from './entries.ts';
-import { isUndefined } from '@antman/bool';
+import { Obj } from '@antman/formic-utils';
+import { withTelemetry } from '@db/telemetry';
 
 type Reducer<State> = (state: State, entry: JournalEntry) => void;
 
-export abstract class JournalConsumer<State = unknown> extends LifecycleComponent {
-  abstract readonly consumerPathComponent: string;
+export type JournalConsumer<State> = LifecycleNode & {
+  processEntry(entry: JournalEntry): void;
+  saveSnapshot(pageNo: number): Promise<void>;
+  loadSnapshot(pageNo: number): Promise<void>;
+  readonly state: State;
+};
 
-  protected abstract getInitialState(): State;
-  protected abstract state: State;
-
-  #reducer?: Reducer<State>;
-  constructor() {
-    super();
-  }
-  protected registerReducer(reducer: Reducer<State>): void {
-    this.#reducer = reducer;
-  }
-  #toSnapPath(pageNo: number) {
-    return `${configManager.cfg.DATA_DIRECTORY}/state/${this.consumerPathComponent}/snap/${pageNo}`;
-  }
-  start(): Promise<void> {
-    if (isUndefined(this.#reducer)) {
-      throw new Error('Cannot start a derivative of JournalConsumer without registering a reducer');
-    }
-    return Promise.resolve();
-  }
-  close(): Promise<void> {
-    return Promise.resolve();
-  }
-  @Observed
-  processEntry(entry: JournalEntry): void {
-    this.#reducer?.(this.state, entry);
-  }
-  @Observed
-  async saveSnapshot(pageNo: number): Promise<void> {
-    await writeJsonFileClean(this.#toSnapPath(pageNo), this.state);
-    const defunctPageNo = pageNo - 2;
-    if (defunctPageNo > -1) await removeFile(this.#toSnapPath(defunctPageNo));
-  }
-  @Observed
-  async loadSnapshot(pageNo: number): Promise<void> {
-    const result = await tryReadJsonFile<State>(this.#toSnapPath(pageNo));
-    if (result instanceof Error) {
-      this.state = this.getInitialState();
-      return;
-    }
-    this.state = result ?? this.getInitialState();
-  }
-}
+type NewConsumer<S> = {
+  name: string;
+  pathShorthand: string;
+  reducer: Reducer<S>;
+  getInitialState: () => S;
+};
+export const newJournalConsumer = <State extends Obj, T = never>(
+  cfg: NewConsumer<State> & T,
+): JournalConsumer<State> & T => {
+  const toSnapPath = (pageNo: number) =>
+    `${configManager.get('DATA_DIRECTORY')}/state/${cfg.pathShorthand}/snap/${pageNo}`;
+  const state = cfg.getInitialState();
+  const reducer = withTelemetry(cfg.reducer, `${cfg.name}.reducer`);
+  return {
+    state,
+    start: () => Promise.resolve(),
+    close: () => Promise.resolve(),
+    ...cfg,
+    processEntry(entry: JournalEntry): void {
+      reducer(state, entry);
+    },
+    async saveSnapshot(pageNo: number): Promise<void> {
+      await writeJsonFileClean(toSnapPath(pageNo), state);
+      const defunctPageNo = pageNo - 2;
+      if (defunctPageNo > -1) await removeFile(toSnapPath(defunctPageNo));
+    },
+    async loadSnapshot(pageNo: number): Promise<void> {
+      const result = await tryReadJsonFile<State>(toSnapPath(pageNo));
+      if (result instanceof Error) return;
+      Object.assign(state, result);
+    },
+  };
+};

@@ -1,5 +1,5 @@
 import { parseArgs } from '@std/cli';
-import { LifecycleComponent } from '@antman/lifecycle';
+import { LifecycleNode } from '@antman/lifecycle';
 import { RingBuffer } from '@db/utl';
 import { handleConnection } from './conn.ts';
 
@@ -21,13 +21,8 @@ function openSocketServer(): void {
   })();
 }
 
-class ConnectionManager extends LifecycleComponent {
-  start() {
-    return Promise.resolve(openSocketServer());
-  }
-  async close() {
-    await Promise.all(connections.values());
-  }
-}
-
-export const connectionManager = new ConnectionManager();
+export const connectionManager: LifecycleNode = {
+  name: 'ConnectionManager',
+  start: () => Promise.resolve(openSocketServer()),
+  close: async () => await Promise.all(connections.values()),
+};

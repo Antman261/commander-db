@@ -1,14 +1,14 @@
-import { Lifecycle } from '@antman/lifecycle';
+import { newLifecycleRoot } from '@antman/lifecycle';
 import { connectionManager } from '@db/net';
 import { configManager } from '@db/cfg';
 import { journalReader, journalWriter } from '@db/jnl';
 
 const initializeDatabase = async () => {
-  const lifecycle = new Lifecycle();
+  const lifecycle = newLifecycleRoot();
   lifecycle.all(console.log);
   lifecycle.register(configManager);
-  lifecycle.register(journalWriter);
   lifecycle.register(journalReader);
+  lifecycle.register(journalWriter);
   lifecycle.register(connectionManager);
   await lifecycle.start();
 };

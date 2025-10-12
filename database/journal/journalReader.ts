@@ -4,93 +4,70 @@ import { BinaryDecodeStream } from '@fe-db/proto';
 import { readJsonFile, tryOpenFile, writeJsonFileClean } from '@db/disk';
 import { JournalEntry } from '@db/jnl';
 import { commandState } from '@db/state';
-import { delay } from '@std/async/delay';
-import { LifecycleComponent } from '@antman/lifecycle';
+import { withTelemetry } from '@db/telemetry';
+import { LifecycleNode, newNode } from '@antman/lifecycle';
 import type { JournalConsumer } from './journalConsumer.ts';
-import { Observed } from '@db/telemetry';
 
 type Snapshot = Record<'pageNo' | 'seekPos', number>;
-
-class JournalReader extends LifecycleComponent {
-  #pageNo = -1;
-  #mainLoopPromise = Promise.resolve();
-  #isRunning = false;
-  get #dirPath() {
-    return `${configManager.cfg.DATA_DIRECTORY}/jnl`;
-  }
-  get #snapPath() {
-    return `${this.#dirPath}/reader.snap`;
-  }
-  constructor() {
-    super();
-  }
-  @Observed
-  async start() {
-    this.registerChildComponent(commandState);
-    await this.#loadSnapshot();
-    await this.startChildComponents();
-    this.#mainLoopPromise = this.#mainLoop();
-    console.log('commandState.state:', commandState.state);
-  }
-  @Observed
-  async #loadSnapshot(): Promise<void> {
-    await ensureFile(this.#snapPath);
-    const { pageNo } = await readJsonFile<Snapshot>(this.#snapPath) ?? { pageNo: 0 };
-    this.#pageNo = pageNo;
-    await Promise.all(this.#getConsumers().map(loadSnapshot(pageNo)));
-  }
-  @Observed
-  async close() {
-    this.#isRunning = false;
-    await this.#mainLoopPromise;
-  }
-  @Observed
-  async #mainLoop() {
-    this.#isRunning = true;
-    const snapshotInterval = Number(configManager.cfg.SNAPSHOT_INTERVAL);
-    let counter = 0;
-    while (this.#isRunning) {
-      const didReadPage = await this.#readPage();
-      if (didReadPage === false) {
-        await delay(3);
-        continue;
-      }
-      counter = (counter + 1) % snapshotInterval;
-      if (counter === 0) await this.#saveSnapshot();
-      this.#pageNo++;
+const streamDecoder = BinaryDecodeStream<JournalEntry>();
+type JournalReader = LifecycleNode & {
+  checkSnapshotInterval(pageNo: number): Promise<void>;
+  processEntry(entry: JournalEntry): void;
+};
+export const journalReader = newNode<JournalReader, JournalConsumer<unknown>>((internals) => {
+  let dirPath: string;
+  let snapPath: string;
+  const loadSnapshot = withTelemetry(async (): Promise<void> => {
+    await ensureFile(snapPath);
+    let { pageNo } = await readJsonFile<Snapshot>(snapPath) ?? { pageNo: 0 };
+    await Promise.all(internals.getChildren().map(loadSnapshotAt(pageNo)));
+    while (await readPage(pageNo)) {
+      pageNo++;
     }
-  }
-  @Observed
-  async #readPage(): Promise<boolean> {
-    const path = `${this.#dirPath}/data/${this.#pageNo}`;
-    console.log({ path });
+  }, 'JournalReader.loadSnapshot');
+  const saveSnapshot = withTelemetry(async (pageNo: number): Promise<void> => {
+    await Promise.all(internals.getChildren().map(takeSnapshot(pageNo)));
+    // snapshots need to all fail or all complete -- solve this problem by providing a page number with pageNo snapshot callback, so that all downstream components can restore from the previous snapshot if the journal reader fails to save its snapshot
+    await writeJsonFileClean(snapPath, JSON.stringify({ pageNo }));
+  }, 'JournalReader.saveSnapshot');
+  const readPage = withTelemetry(async (pageNo: number): Promise<boolean> => {
+    const path = `${dirPath}/data/${pageNo}`;
     const currentPage = await tryOpenFile(path, { read: true });
     if (currentPage instanceof Error) return false;
-    const pageStream = currentPage.readable.pipeThrough(BinaryDecodeStream<JournalEntry>());
+    console.log({ pageNo });
+    const pageStream = currentPage.readable.pipeThrough(streamDecoder);
 
-    const consumer = this.#getConsumers();
+    const consumers = internals.getChildren();
     for await (const [entry] of pageStream) {
-      consumer.map(readEntry(entry));
+      consumers.map(readEntry(entry));
     }
     pageStream.cancel();
     return true;
-  }
-  @Observed
-  async #saveSnapshot() {
-    await Promise.all(this.#getConsumers().map(takeSnapshot(this.#pageNo)));
-    // snapshots need to all fail or all complete -- could potentially solve this problem by providing a page number with the snapshot callback, so that all downstream components can restore from the previous snapshot if the journal reader fails to save its snapshot
-    await writeJsonFileClean(this.#snapPath, JSON.stringify({ pageNo: this.#pageNo }));
-  }
-  #getConsumers(): Readonly<JournalConsumer<unknown>[]> {
-    return this.getChildren() as readonly JournalConsumer<unknown>[];
-  }
-}
-
-export const journalReader = new JournalReader(); // stream be right back
+  }, 'JournalReader.readPage');
+  return {
+    name: 'JournalReader',
+    start: withTelemetry(async () => {
+      dirPath = `${configManager.get('DATA_DIRECTORY')}/jnl`;
+      snapPath = `${dirPath}/reader.snap`;
+      internals.registerChildNode(commandState);
+      await loadSnapshot();
+      await internals.startChildNodes();
+      console.log(commandState.state);
+    }, 'JournalReader.start'),
+    close: () => Promise.resolve(),
+    checkSnapshotInterval: withTelemetry(async (pageNo: number) => {
+      const snapshotInterval = Number(configManager.get('SNAPSHOT_INTERVAL'));
+      if ((pageNo + 1) % snapshotInterval === 0) await saveSnapshot(pageNo);
+    }, 'JournalReader.checkSnapshotInterval'),
+    processEntry: withTelemetry((entry: JournalEntry) => {
+      internals.getChildren().map(readEntry(entry));
+    }, 'JournalReader.processEntry'),
+  };
+});
 
 const takeSnapshot = (pageNo: number) => (component: JournalConsumer<unknown>) =>
   component.saveSnapshot(pageNo);
-const loadSnapshot = (pageNo: number) => (component: JournalConsumer<unknown>) =>
+const loadSnapshotAt = (pageNo: number) => (component: JournalConsumer<unknown>) =>
   component.loadSnapshot(pageNo);
 const readEntry = (entry: JournalEntry) => (component: JournalConsumer<unknown>) =>
   component.processEntry(entry);
