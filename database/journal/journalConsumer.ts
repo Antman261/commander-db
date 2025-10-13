@@ -20,7 +20,7 @@ type NewConsumer<S> = {
   reducer: Reducer<S>;
   getInitialState: () => S;
 };
-export const newJournalConsumer = <State extends Obj, T = never>(
+export const newJournalConsumer = <State extends Obj, T = Obj>(
   cfg: NewConsumer<State> & T,
 ): JournalConsumer<State> & T => {
   const toSnapPath = (pageNo: number) =>

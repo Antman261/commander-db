@@ -55,8 +55,3 @@ export const cmdSubManager = {
   dispatchCommand,
   onCommandResult,
 };
-
-class CommandSubscriptionManager extends LifecycleComponent {
-  async start() {
-  }
-}

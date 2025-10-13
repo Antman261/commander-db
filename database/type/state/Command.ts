@@ -38,7 +38,7 @@ export type CommandPending = {
   maxRuns: UInt8;
   runCooldownMs: UInt8;
   runTimeoutSeconds: UInt8;
-  cacheDurationHours: UInt16;
+  cacheDurationHours: UInt16; // maybe rename idempotentPeriodHours
   runAfter?: DateTime;
   createdAt: DateTime;
 };
