@@ -74,16 +74,17 @@ export const journalWriter: JournalWriter = (() => {
       // todo
       return Promise.resolve();
     }, 'JournalWriter.close'),
-    writeCommand: withTelemetry(async (cmd, connId) => {
-      const command = adaptCommandInput(cmd);
+    writeCommand: withTelemetry(async (cmdInput, connId) => {
+      const cmd = adaptCommandInput(cmdInput);
       // todo: check command idempotency cache for command id
       await writeEntry({
         k: entryKind.cmdIssued,
-        cmd: command,
+        cmd: cmd,
+        id: cmd.id,
         connId,
         writtenAt: Date.now(),
       });
-      return command.id;
+      return cmd.id;
     }, 'JournalWriter.writeCommand'),
   };
 })();

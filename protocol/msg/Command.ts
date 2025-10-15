@@ -10,8 +10,8 @@ export type CommandInputMessage = {
    * For example, for a command issued from a HTTP request, you could supply the request id as the command id. Then, if the client repeats the request with the same id, they will receive the existing result rather than issuing. a new command.
    */
   id?: Bigint128;
-  subject: string;
-  subjectId: Bigint128 | string;
+  entity: string;
+  entityId: Bigint128 | string;
   /**
    * A parentCommandId will only be present if the command was issued from within a workflow.
    */

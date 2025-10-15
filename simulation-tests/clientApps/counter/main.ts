@@ -33,8 +33,8 @@ app.get('/counters', (c) => c.json(counters));
 app.post('/counters', async (c) => {
   const { name } = await c.req.json();
   await feDb.issueCommand({
-    subject: 'counter',
-    subjectId: name,
+    entity: 'counter',
+    entityId: name,
     name: 'start-counter',
   });
   return c.json({ outcome: 'command issued' });

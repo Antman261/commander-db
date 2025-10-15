@@ -27,8 +27,8 @@ export type CommandPending = {
   kind: CmdKindI;
   status: CmdStatuses['pending'];
   name: CommandInputMessage['name'];
-  subject: CommandInputMessage['subject'];
-  subjectId: CommandInputMessage['subjectId'];
+  entity: CommandInputMessage['entity'];
+  entityId: CommandInputMessage['entityId'];
   source?: CommandInputMessage['source'];
   input?: CommandInputMessage['input'];
   // output: unknown; -- a pending command can't have an output yet

@@ -17,13 +17,42 @@ type NewCommand = Omit<CommandPending, 'error'>;
 
 export type CommandIssuedEntry = EntryBase & {
   k: JournalEntryKind['cmdIssued'];
+  id: CommandPending['id'];
   cmd: NewCommand;
 };
 
 export type CommandStartedEntry = EntryBase & {
+  /**
+   * journal entry kind
+   */
   k: JournalEntryKind['cmdStarted'];
-  cmdId: CommandPending['id'];
-  runId: CommandRun['id'];
+  /**
+   * command id
+   */
+  id: CommandPending['id'];
+  /**
+   * entity
+   */
+  e: CommandPending['entity'];
+  /**
+   * entity id
+   */
+  eId: CommandPending['entityId'];
+  /**
+   * run id
+   */
+  rId: CommandRun['id'];
 };
 
-export type JournalEntry = CommandIssuedEntry | CommandStartedEntry;
+export type CommandCompletedEntry = EntryBase & {
+  k: JournalEntryKind['cmdCompleted'];
+  /** command id */
+  id: CommandPending['id'];
+  /** entity **/
+  e: CommandPending['entity'];
+  /** entity id **/
+  eId: CommandPending['entityId'];
+  evs: ResultEvent[];
+};
+type ResultEvent = unknown;
+export type JournalEntry = CommandIssuedEntry | CommandStartedEntry | CommandCompletedEntry;

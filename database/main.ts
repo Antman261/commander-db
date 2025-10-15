@@ -2,6 +2,7 @@ import { newLifecycleRoot } from '@antman/lifecycle';
 import { connectionManager } from '@db/net';
 import { configManager } from '@db/cfg';
 import { journalReader, journalWriter } from '@db/jnl';
+import { cmdSubManager } from '@db/translation';
 
 const initializeDatabase = async () => {
   const lifecycle = newLifecycleRoot();
@@ -10,6 +11,7 @@ const initializeDatabase = async () => {
   lifecycle.register(journalReader);
   lifecycle.register(journalWriter);
   lifecycle.register(connectionManager);
+  lifecycle.register(cmdSubManager);
   await lifecycle.start();
 };
 if (import.meta.main) {
