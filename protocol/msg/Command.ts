@@ -1,6 +1,5 @@
 import type { Bigint128 } from './Bigint128.ts';
 import type { PotentialEvent } from './Event.ts';
-import type { UInt16, UInt8 } from '@fe-db/proto';
 import type { Obj } from './Obj.ts';
 
 export type CommandInputMessage = {
@@ -12,6 +11,10 @@ export type CommandInputMessage = {
   id?: Bigint128;
   entity: string;
   entityId: Bigint128 | string;
+  /**
+   * Provide the name of the command -- used to call the command handler on a command processing client
+   */
+  name: string;
   /**
    * A parentCommandId will only be present if the command was issued from within a workflow.
    */
@@ -25,33 +28,29 @@ export type CommandInputMessage = {
    */
   source?: string;
   /**
-   * Provide the name of the command -- used to call the command handler on a command processing client
-   */
-  name: string;
-  /**
-   * Maximum number of times CommanderDB will attempt the command
+   * Maximum number of times CommanderDB will attempt the command. Cannot exceed 255
    * @default 3
    */
-  maxRuns?: UInt8;
+  maxRuns?: number;
   /**
-   * Number of milliseconds before CommanderDB will re-aattempt a failed command
+   * Number of milliseconds before CommanderDB will re-attempt a failed command
    * @default 2_000
    */
-  runCooldownMs?: UInt8;
+  runCooldownMs?: number;
   /**
    * Specify, in seconds, when CommanderDB should consider an incomplete command run to have failed.
    *
    * @default 5 seconds
    */
-  runTimeoutSeconds?: UInt8;
+  runTimeoutSeconds?: number;
   /**
-   * How long CommanderDB should persist the command id and optional source in its idempotency cache. While in the cache, subsequent attempts to issue a command with the same id will return the result of the previously issued command without rerunning it.
+   * How long CommanderDB should persist the command id in its idempotency cache. While in the cache, subsequent attempts to issue a command with the same id will return the result of the previously issued command without rerunning it.
    *
    * @default 96 hours
    */
-  cacheDurationHours?: UInt16;
+  idempotentPeriodHours?: number;
   /**
-   * Provide metadata such as trace id. Injected into the command processor's OpenTelemetry context, providing trace propagation
+   * Provide metadata such as trace id. Injected into the command processor's OpenTelemetry context, providing  propagation
    */
   metadata?: Obj;
   /**
@@ -59,10 +58,13 @@ export type CommandInputMessage = {
    */
   input?: Obj;
   /**
-   * Set this to delay the execution of a command until after the provided Date object
+   * Set this to delay the execution of a command until after the provided timestamp in milliseconds
    */
-  runAfter?: Date;
+  runAfter?: number;
 };
 
-export type CommandMessage = Omit<{ id: Bigint128 } & CommandInputMessage, 'maxAttempts'>;
+export type CommandMessage = Omit<
+  { id: NonNullable<CommandInputMessage['id']> } & CommandInputMessage,
+  'maxAttempts'
+>;
 export type CommandResult = PotentialEvent[] | Error | string;

@@ -1,11 +1,12 @@
-import { CommandMessage } from '../../protocol/msg/Command.ts';
 import {
   commandAssigned,
   commandSubscriptionEnded,
   commandSubscriptionGranted,
   DbMessage,
 } from '../../protocol/msg/DbMessage.ts';
+import { CommandPending } from '@db/type';
 import { Candidate } from './cmdSubManager.ts';
+import { toCommandMessage } from './adaptors/toCommandMessage.ts';
 
 export class CommandSubscriber {
   id: Candidate['id'];
@@ -54,10 +55,10 @@ export class CommandSubscriber {
     const silentDurationMs = Date.now() - this.#lastSeen;
     if (silentDurationMs > 60_000) this.status = 'missing';
   }
-  dispatchCommand(cmd: CommandMessage): void {
+  dispatchCommand(cmd: CommandPending): void {
     this.allocated++;
     this.#updateStatus();
-    this.#sendMsg(commandAssigned(cmd));
+    this.#sendMsg(commandAssigned(toCommandMessage(cmd)));
   }
   onCommandResult(): void {
     this.allocated--;

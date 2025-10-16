@@ -26,7 +26,9 @@ export const dbMsg = {
 
 export const commandSubscriptionGranted = (): DbMessages['cmdSubGranted'] => ({ k: 0 });
 export const commandSubscriptionEnded = (): DbMessages['cmdSubEnded'] => ({ k: 1 });
-export const commandAssigned = (cmd: CommandMessage): DbMessages['cmdAssigned'] => ({ k: 2, cmd });
+export const commandAssigned = (cmd: CommandMessage): DbMessages['cmdAssigned'] => {
+  return ({ k: 2, cmd });
+};
 export const eventSubscriptionGranted = (): DbMessages['eventSubGranted'] => ({ k: 3 });
 export const eventSubscriptionEnded = (): DbMessages['eventSubEnded'] => ({ k: 4 });
 export const eventsDispatched = (e: Event[]): DbMessages['events'] => ({ k: 5, e });

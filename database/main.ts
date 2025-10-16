@@ -10,8 +10,8 @@ const initializeDatabase = async () => {
   lifecycle.register(configManager);
   lifecycle.register(journalReader);
   lifecycle.register(journalWriter);
-  lifecycle.register(connectionManager);
   lifecycle.register(cmdSubManager);
+  lifecycle.register(connectionManager);
   await lifecycle.start();
 };
 if (import.meta.main) {

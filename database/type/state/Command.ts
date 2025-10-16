@@ -22,26 +22,23 @@ type CmdStatuses = typeof cmdStatus;
 export type CmdStatusS = keyof CmdStatuses;
 export type CmdStatusI = CmdStatuses[CmdStatusS];
 
-export type CommandPending = {
-  id: NonNullable<CommandInputMessage['id']>;
-  kind: CmdKindI;
-  status: CmdStatuses['pending'];
-  name: CommandInputMessage['name'];
-  entity: CommandInputMessage['entity'];
-  entityId: CommandInputMessage['entityId'];
-  source?: CommandInputMessage['source'];
-  input?: CommandInputMessage['input'];
-  // output: unknown; -- a pending command can't have an output yet
-  metadata: NonNullable<CommandInputMessage['metadata']>;
-  parentCommandId?: CommandInputMessage['parentCommandId'];
-  runs: CommandRun[];
-  maxRuns: UInt8;
-  runCooldownMs: UInt8;
-  runTimeoutSeconds: UInt8;
-  cacheDurationHours: UInt16; // maybe rename idempotentPeriodHours
-  runAfter?: DateTime;
-  createdAt: DateTime;
-};
+export type CommandPending =
+  & Omit<
+    CommandInputMessage,
+    'id' | 'maxRuns' | 'runCooldownMs' | 'runTimeoutSeconds' | 'idempotentPeriodHours' | 'runAfter'
+  >
+  & {
+    id: NonNullable<CommandInputMessage['id']>;
+    kind: CmdKindI;
+    status: CmdStatuses['pending'];
+    runs: CommandRun[];
+    maxRuns: UInt8;
+    runCooldownMs: UInt8;
+    runTimeoutSeconds: UInt8;
+    idempotentPeriodHours: UInt16;
+    runAfter?: DateTime;
+    createdAt: DateTime;
+  };
 
 export type CommandRunning = Omit<CommandPending, 'status'> & {
   status: CmdStatuses['running'];

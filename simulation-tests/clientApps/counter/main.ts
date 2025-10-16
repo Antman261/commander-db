@@ -8,10 +8,10 @@ const port = Number(args.port ?? 8092);
 const app = new Hono();
 const counters: Record<string, number> = {};
 const feDb = await initClient({ port: Number(args.dbPort[0]) }); // todo: make client handle this
-feDb.startCommandSubscription(async (cmd) => {
+feDb.startCommandSubscription((cmd) => {
   console.log('Received command:', cmd);
-  if (cmd.name === 'start-counter') return [{ kind: 'counter-started', name: cmd.name }];
-  return [];
+  if (cmd.name === 'start-counter') return Promise.resolve([{ kind: 'counter-started', name: cmd.name }]);
+  return Promise.resolve([]);
 });
 const eventSubscription = await feDb.startEventSubscription(0n);
 (async () => {

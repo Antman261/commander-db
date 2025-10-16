@@ -43,16 +43,27 @@ export type CommandStartedEntry = EntryBase & {
    */
   rId: CommandRun['id'];
 };
+export type CommandFailedEntry = EntryBase & {
+  /**
+   * journal entry kind
+   */
+  k: JournalEntryKind['cmdFailed'];
+  /**
+   * command id
+   */
+  id: CommandPending['id'];
+  res: Error | string;
+};
 
 export type CommandCompletedEntry = EntryBase & {
   k: JournalEntryKind['cmdCompleted'];
   /** command id */
   id: CommandPending['id'];
-  /** entity **/
-  e: CommandPending['entity'];
-  /** entity id **/
-  eId: CommandPending['entityId'];
   evs: ResultEvent[];
 };
 type ResultEvent = unknown;
-export type JournalEntry = CommandIssuedEntry | CommandStartedEntry | CommandCompletedEntry;
+export type JournalEntry =
+  | CommandIssuedEntry
+  | CommandStartedEntry
+  | CommandCompletedEntry
+  | CommandFailedEntry;

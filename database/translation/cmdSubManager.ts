@@ -1,10 +1,11 @@
 import { delay } from '@std/async';
 import { is, isUndefined } from '@antman/formic-utils';
 import { LifecycleNode } from '@antman/lifecycle';
-import { CommandMessage, DbMessage } from '@fe-db/proto';
+import { DbMessage } from '@fe-db/proto';
 import { getActiveStreams } from '@db/state';
-import { cmdStatus } from '@db/type';
+import { cmdStatus, CommandPending } from '@db/type';
 import { CommandSubscriber } from './CommandSubscriber.ts';
+import { journalWriter } from '@db/jnl';
 
 export type Candidate = {
   id: string;
@@ -28,7 +29,7 @@ const newCmdSubscriberManager = (): CommandSubscriberManager => {
     if (length === 0) return;
     if (is(nextIdx).not.lessThan(length)) nextIdx = length - 1;
   };
-  const dispatchCommand = async (cmd: CommandMessage): Promise<void> => {
+  const dispatchCommand = async (cmd: CommandPending): Promise<void> => {
     let subscriber: CommandSubscriber | undefined;
     let attempts = 0;
     const attemptLimit = subscriberCircle.length;
@@ -38,10 +39,13 @@ const newCmdSubscriberManager = (): CommandSubscriberManager => {
       attempts++;
       if (attempts > attemptLimit) await delay(attempts);
     } while (isUndefined(subscriber) || subscriber.status !== 'free');
+    await journalWriter.writeCommandStarted(cmd, subscriber.id);
     subscriber.dispatchCommand(cmd);
   };
   let isRunning = false;
   let mainLoopPromise: Promise<void> | undefined;
+  let loopTickStartMs = 0;
+  const maxLoopWaitMs = 5;
   return ({
     name: 'CommandSubscriptionManager',
     start() {
@@ -49,11 +53,13 @@ const newCmdSubscriberManager = (): CommandSubscriberManager => {
       isRunning = true;
       mainLoopPromise = (async () => {
         while (isRunning) {
+          loopTickStartMs = Date.now();
           for (const stream of getActiveStreams()) {
             if (stream.headCommand?.status !== cmdStatus.pending) return;
-            // todo: Write journal entry for command started
             await dispatchCommand(stream.headCommand);
           }
+          const durationMs = Date.now() - loopTickStartMs;
+          if (durationMs < maxLoopWaitMs) await delay(maxLoopWaitMs - durationMs);
         }
       })();
       return Promise.resolve();

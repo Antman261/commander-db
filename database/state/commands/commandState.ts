@@ -1,8 +1,8 @@
 import { newJournalConsumer } from '@db/jnl';
-import { getInitialState, reduceCommandState, State } from './reduceCommandState.ts';
+import { EntityStream, getInitialState, reduceCommandState, State } from './reduceCommandState.ts';
 
-export const getActiveStreams = (): EntityStream => {
-  return Object.values(commandState.state);
+export const getActiveStreams = (): EntityStream[] => {
+  return Object.values(commandState.state.streams);
 };
 
 export const commandState = newJournalConsumer<State>({
