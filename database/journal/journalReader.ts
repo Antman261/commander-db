@@ -52,7 +52,6 @@ export const journalReader = newNode<JournalReader, JournalConsumer<unknown>>((i
       internals.registerChildNode(commandState);
       await loadSnapshot();
       await internals.startChildNodes();
-      console.log(commandState.state);
     }, 'JournalReader.start'),
     close: () => Promise.resolve(),
     checkSnapshotInterval: withTelemetry(async (pageNo: number) => {

@@ -14,6 +14,7 @@ type JournalWriter = LifecycleNode & {
   writeCommandIssued(cmd: CommandInputMessage, connId: string): Promise<bigint>;
   writeCommandStarted(cmd: CommandPending, connId: string): Promise<void>;
   writeCommandOutcome(cmdId: CommandPending['id'], result: CommandResult, connId: string): Promise<void>;
+  writeCommandFailed(cmdId: CommandPending['id'], result: string | Error, connId: string): Promise<void>;
 };
 export const journalWriter: JournalWriter = (() => {
   let pageNo = 0;
@@ -100,20 +101,20 @@ export const journalWriter: JournalWriter = (() => {
       });
     }, 'JournalWriter.writeCommandStarted'),
     writeCommandOutcome: withTelemetry(async (cmdId, result, connId) => {
-      if (Array.isArray(result)) {
-        return await writeEntry({
-          k: entryKind.cmdCompleted,
-          id: cmdId,
-          evs: result,
-          connId,
-        });
-      }
+      return await writeEntry({
+        k: entryKind.cmdCompleted,
+        id: cmdId,
+        res: result,
+        connId,
+      });
+    }, 'JournalWriter.writeCommandCompleted'),
+    writeCommandFailed: withTelemetry(async (cmdId, result, connId) => {
       return await writeEntry({
         k: entryKind.cmdFailed,
         id: cmdId,
         res: result,
         connId,
       });
-    }, 'JournalWriter.writeCommandCompleted'),
+    }, 'JournalWriter.writeCommandFailed'),
   };
 })();

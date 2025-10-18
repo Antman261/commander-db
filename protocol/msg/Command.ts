@@ -2,13 +2,15 @@ import type { Bigint128 } from './Bigint128.ts';
 import type { PotentialEvent } from './Event.ts';
 import type { Obj } from './Obj.ts';
 
+export type CommandId = Bigint128;
+
 export type CommandInputMessage = {
   /**
    * Recommended: supply a meaningful idempotency key as the command id.
    *
    * For example, for a command issued from a HTTP request, you could supply the request id as the command id. Then, if the client repeats the request with the same id, they will receive the existing result rather than issuing. a new command.
    */
-  id?: Bigint128;
+  id?: CommandId;
   entity: string;
   entityId: Bigint128 | string;
   /**

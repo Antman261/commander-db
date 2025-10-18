@@ -1,4 +1,4 @@
-import type { CommandInputMessage, CommandResult } from './Command.ts';
+import type { CommandId, CommandInputMessage, CommandResult } from './Command.ts';
 
 /**
  * Messages sent from the client to the database
@@ -6,7 +6,7 @@ import type { CommandInputMessage, CommandResult } from './Command.ts';
 export type ClientMessages = {
   requestCommandSubscription: { k: 0; ags?: string[]; num: number };
   endCommandSubscription: { k: 1 };
-  commandCompleted: { k: 2; result: CommandResult };
+  commandCompleted: { k: 2; r: CommandResult; cid: CommandId };
   requestEventSubscription: { k: 3; from?: bigint };
   endEventSubscription: { k: 4 };
   issueCommand: { k: 5 } & CommandInputMessage;
@@ -21,6 +21,12 @@ export const clientMsg = {
   issueCommand: 5,
   bye: 6,
 } as const;
+type ClientMessageKinds = typeof clientMsg;
+type ClientMessageKind = ClientMessageKinds[keyof ClientMessageKinds];
+const clientMsgDisplay = Object.fromEntries(
+  Object.entries(clientMsg).map(([key, val]) => [val, key]),
+) as Record<ClientMessageKind, keyof ClientMessageKinds>;
+export const toClientMsgKind = (kind: ClientMessageKind): keyof ClientMessageKinds => clientMsgDisplay[kind];
 /**
  * Messages sent from the client to the database
  */
@@ -38,10 +44,10 @@ export const requestCommandSubscription = (
   ags,
 });
 export const endCommandSubscription = (): ClientMessages['endCommandSubscription'] => ({ k: 1 });
-export const commandCompleted = (result: CommandResult): ClientMessages['commandCompleted'] => ({
-  k: 2,
-  result,
-});
+export const commandCompleted = (
+  r: CommandResult,
+  cid: CommandId,
+): ClientMessages['commandCompleted'] => ({ k: 2, r, cid });
 export const requestEventSubscription = (from?: bigint): ClientMessages['requestEventSubscription'] => ({
   k: 3,
   from,

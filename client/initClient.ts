@@ -98,7 +98,7 @@ export const initClient = async (
             case dbMsg.commandSubscriptionEnded:
               return await close();
             case dbMsg.commandAssigned:
-              await send(commandCompleted(await onCommand(msg.cmd)));
+              await send(commandCompleted(await onCommand(msg.cmd), msg.cmd.id));
               break;
           }
         }

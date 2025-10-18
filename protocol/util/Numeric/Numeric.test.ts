@@ -1,5 +1,6 @@
 import { expect } from 'jsr:@std/expect';
-import { UInt32 } from './Numerics.ts';
+import { UInt32, UInt8 } from './Numerics.ts';
+import { deserialize, serialize } from 'node:v8';
 
 Deno.test('UInt', async ({ step }) => {
   await step('usable with arithmetic', () => {
@@ -28,5 +29,11 @@ Deno.test('UInt', async ({ step }) => {
     expect(dataBuffer.values().toArray()).toEqual([8, 1, 1, 0, 123, 0, 0, 0]);
     b.value = 258000;
     expect(dataBuffer.values().toArray()).toEqual([208, 239, 3, 0, 123, 0, 0, 0]);
+  });
+  await step('does arithmetic with single byte integer', () => {
+    expect(new UInt8(5).value).toEqual(5);
+  });
+  await step('can be serialized and deserialized', () => {
+    expect(deserialize(serialize(new UInt8(5).value))).toEqual(5);
   });
 });

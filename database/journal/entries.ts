@@ -1,4 +1,5 @@
 import { CommandPending, CommandRun, DateTime } from '@db/type';
+import { CommandResult } from '@fe-db/proto';
 
 export const entryKind = {
   cmdIssued: 0,
@@ -59,9 +60,8 @@ export type CommandCompletedEntry = EntryBase & {
   k: JournalEntryKind['cmdCompleted'];
   /** command id */
   id: CommandPending['id'];
-  evs: ResultEvent[];
+  res: CommandResult;
 };
-type ResultEvent = unknown;
 export type JournalEntry =
   | CommandIssuedEntry
   | CommandStartedEntry

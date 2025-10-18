@@ -1,6 +1,5 @@
-import { Obj } from '@antman/formic-utils';
 import { Bigint128 } from '../primitive/Bigint128.ts';
-import { CommandInputMessage, UInt16, UInt8 } from '@fe-db/proto';
+import { CommandInputMessage, CommandResult, UInt16, UInt8 } from '@fe-db/proto';
 import { DateTime } from '../primitive/DateTime.ts';
 
 /**
@@ -36,13 +35,16 @@ export type CommandPending =
     runCooldownMs: UInt8;
     runTimeoutSeconds: UInt8;
     idempotentPeriodHours: UInt16;
-    runAfter?: DateTime;
+    runAfter: DateTime;
+    runId?: CommandRun['id'];
+    beganAt?: DateTime;
     createdAt: DateTime;
   };
 
 export type CommandRunning = Omit<CommandPending, 'status'> & {
   status: CmdStatuses['running'];
   runId: CommandRun['id'];
+  connId: string;
   beganAt: DateTime;
 };
 
@@ -61,14 +63,14 @@ export type CommandCompleted =
     status: CmdStatuses['completed'];
     beganAt: DateTime;
     completedAt: DateTime;
-    output: Obj;
+    result: CommandResult;
     runs: CommandRun[];
   };
 
 export type CommandRun = {
   id: Bigint128; // otel span id
-  commandId: CommandPending['id'];
   appInstanceId: string;
+  connId: string;
   beganAt: DateTime;
   stoppedAt: DateTime; // we don't store running attempts, only failed or completed
   error?: unknown; // the successful attempt will be the last, and it won't have an error
@@ -76,7 +78,7 @@ export type CommandRun = {
 
 type CommandResultCacheEntry = {
   commandId: CommandPending['id'];
-  result: CommandCompleted['output'];
+  result: CommandCompleted['result'];
   expiresAt: DateTime;
 };
 /**
@@ -94,3 +96,5 @@ export type CommandResultCache = {
  * Keeps track of each command attempted by application instances. Key-value store of instance id and an array of attempts
  */
 export type CommandRunsMap = Record<string, Date[]>;
+
+export type Command = CommandPending | CommandCompleted | CommandExhausted | CommandRunning;

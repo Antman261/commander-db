@@ -27,14 +27,11 @@
       "include": [
         "camelcase",
         "default-param-last",
-        "eqeqeq",
         "explicit-module-boundary-types",
         "guard-for-in",
         "no-boolean-literal-for-arguments",
         "no-eval",
         "no-inferrable-types",
-        "no-non-null-asserted-optional-chain",
-        "no-non-null-assertion",
         "no-self-compare",
         "no-sparse-arrays",
         "no-sync-fn-in-async-fn",
@@ -43,7 +40,8 @@
         "no-useless-rename",
         "prefer-ascii",
         "triple-slash-reference"
-      ]
+      ],
+      "exclude": ["no-non-null-assertion"]
     }
   },
   "fmt": {
