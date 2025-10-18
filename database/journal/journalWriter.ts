@@ -1,5 +1,5 @@
 import { LifecycleNode } from '@antman/lifecycle';
-import { CommandInputMessage, CommandResult, jsBinaryEncode } from '@fe-db/proto';
+import { CommandInputMessage, CommandResult, newBinaryEncoder } from '@fe-db/proto';
 import { configManager } from '@db/cfg';
 import { entryKind, JournalEntry, journalReader } from '@db/jnl';
 import { tryMakeDir } from '@db/disk';
@@ -23,7 +23,7 @@ export const journalWriter: JournalWriter = (() => {
   let dataPath: string;
   let currentPage: Deno.FsFile;
   let nextPage: Deno.FsFile;
-  const binaryEncoder = jsBinaryEncode();
+  const binaryEncoder = newBinaryEncoder();
   const initJournalDirectories = withTelemetry(async (): Promise<void> => {
     await Promise.all([tryMakeDir(archivePath), tryMakeDir(dataPath)]);
   }, 'JournalWriter.initJournalDirectories');
