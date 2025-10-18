@@ -7,9 +7,8 @@
   - a bigint representing a timestamp in microseconds
   - a js Date object (milliseconds tho)
 
-- would it save space to use symbols as keys? -- it might remove string literals. negative, symbols are not serialized
-  - answer: No, symbol object keys are not serialized
-- could compress object keys using a map to rename keys e.g. `{ someReallyLongPropertyName: false } => { a: false }`, but this might be no more efficient than just running lz4 over the results
+- ~~would it save space to use symbols as keys? -- it might remove string literals~~ negative, symbols are not serialized
+- ~~could compress object keys using a map to rename keys e.g. `{ someReallyLongPropertyName: false } => { a: false }`, but this might be no more efficient than just running lz4 over the results~~ tuple of values more efficient
 - ~~small integers? store as number or as bigint? I can't remember if bigint is implemented as an array of 64 or 32 bit integers~~
 - store each row as an array of values (`Object.entries(row).sort((a, b)=> a[0] - b[0]).map(entry => entry[1])`)
 - https://github.com/tc39/proposal-ecmascript-sharedmem/blob/main/TUTORIAL.md but what memory would we really need to share?
@@ -25,4 +24,4 @@
 - could use columnar storage for some things: each column would be stored in a separate file
 - because an event stream has sequential event ids we can encode the range of events contained within each file into the name of each file
 - or, if we have the same number of events in each file we could name each file with the id of the first event it contains -- then we would always be able to open the right file to find an event without searching
-- Every virtual page table could have a dry log and a wet log. The dry log is changes that a transaction has said it would like to make and the virtual page table returns the journal entries for that change, and keeps those entries in the dry log. Then when the journaller emits its entries back to the virtual page tables, the page table moves those over from the dry log to the wet log because that means the transaction has been committed. It then executes those changes.
+- ~~Every virtual page table could have a dry log and a wet log. The dry log is changes that a transaction has said it would like to make and the virtual page table returns the journal entries for that change, and keeps those entries in the dry log. Then when the journaller emits its entries back to the virtual page tables, the page table moves those over from the dry log to the wet log because that means the transaction has been committed. It then executes those changes.~~ Just bedtime thoughts, not relevant because where we're going, we don't _need_ transactions 😎

@@ -2,13 +2,13 @@
 
 **Commands & Events**
 
-- [ ] issue a command, save it to disk
-- [ ] dispatch a command for processing
-- [ ] return events as command result: command marked as completed
+- [x] issue a command, save it to disk
+- [x] dispatch a command for processing
+- [x] return events as command result: command marked as completed
 - [ ] return events as command result: events saved
 - [ ] throw error during command processing: command re-attempted
 - [ ] command processing attempts exhausted: command marked as exhausted
-- [ ] command processing interrupted: processing recovers using stack frames
+- [ ] ~~command processing interrupted: processing recovers using stack frames~~ Irrelevant: Extracting non-repeatable processing out to workflows and requests negates any need for resumable command processing.
 
 **Event Subscribers**
 
@@ -23,6 +23,12 @@
 - [ ] receive result of command inside a workflow
 - [ ] use the result of command to issue subsequent command
 
+**Requests**
+
+- [ ] Submit a request
+- [ ] Requests dispatched to command subscribers
+- [ ] Client implements request processing
+- [ ] Request result saved, workflow continues
 
 **Archiving**
 
@@ -34,11 +40,4 @@
 
 - [ ] 
 
-## In Progress: Issue a command, save it to disk
 
-- [ ] mocked: request from client
-- [ ] translation layer: transform and validate schema
-- [ ] auth: setup jwt verification middleware, but with a mock signature verification that always passes
-- [ ] application instance tracking: application registered
-- [ ] issueCommandMessage business logic validation: no existing command, no matching idempotency key
-- [ ] journal entry written: command saved to disk
