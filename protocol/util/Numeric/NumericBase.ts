@@ -13,48 +13,57 @@ const STORAGE_TYPES = {
 type StorageTypes = typeof STORAGE_TYPES;
 
 export class Numeric<T extends keyof StorageTypes> {
-  protected _value: InstanceType<StorageTypes[T]>;
+  /** @private Underlying data view  */
+  protected _v: InstanceType<StorageTypes[T]>;
+  /** Numeric type */
+  protected _t: keyof StorageTypes;
   constructor(num: number, storageType: T, buffer?: ArrayBuffer, offset: number = 0) {
+    this._t = storageType;
     const storeType = STORAGE_TYPES[storageType];
     buffer
-      ? this._value = new storeType(buffer, offset, 1) as InstanceType<StorageTypes[T]>
-      : this._value = new storeType(1) as InstanceType<StorageTypes[T]>;
-    this._value[0] = num;
+      ? this._v = new storeType(buffer, offset, 1) as InstanceType<StorageTypes[T]>
+      : this._v = new storeType(1) as InstanceType<StorageTypes[T]>;
+    this._v[0] = num;
   }
   /**
    * Number of bytes used to store the numeric
    */
   get size(): number {
-    return this._value.BYTES_PER_ELEMENT;
+    return this._v.BYTES_PER_ELEMENT;
   }
   /**
    * The underlying array buffer
    */
   get buffer(): ArrayBuffer {
-    return this._value.buffer;
+    return this._v.buffer;
   }
   get value() {
-    return this._value[0];
+    return this._v[0];
   }
   set value(v: number) {
-    this._value[0] = v;
+    this._v[0] = v;
   }
   set(v: number) {
-    this._value[0] = v;
+    this._v[0] = v;
   }
   valueOf() {
-    return this._value[0];
+    return this._v[0];
   }
   [Symbol.toPrimitive](hint: 'string' | 'number' | 'default') {
     if (hint === 'number') {
-      return this._value[0];
+      return this._v[0];
     }
-    return this._value[0];
+    return this._v[0];
   }
   setViaBinary(buf: Uint8Array): void {
-    this._value[0] = new Uint32Array(this.buffer, buf.byteOffset, buf.byteLength / this.size)[0];
+    this._v[0] = new Uint32Array(this.buffer, buf.byteOffset, buf.byteLength / this.size)[0];
   }
   toBinary() {
-    return new Uint8Array(this._value.buffer, 0, this.size);
+    return new Uint8Array(this._v.buffer, 0, this.size);
   }
 }
+
+export type DryNumeric<T extends keyof StorageTypes> = {
+  __v: StorageTypes[T];
+  _storeType: keyof StorageTypes;
+};

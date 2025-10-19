@@ -35,6 +35,8 @@ export class SInt32 extends Numeric<'SInt'> {
     super(num, 'SInt', buffer, offset);
   }
 }
+
+export type Numerics = UInt8 | SInt8 | UInt16 | SInt16 | UInt32 | SInt32;
 // export class UBigInt extends Numeric<'UBigInt'> {
 //   constructor(num: number, buffer?: ArrayBuffer, offset: number = 0) {
 //     super(num, 'UBigInt', buffer, offset);
