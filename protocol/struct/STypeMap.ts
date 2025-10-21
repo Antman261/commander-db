@@ -130,7 +130,7 @@ export type SStructMap<K extends STransferable = STransferable, V extends STrans
 export type SStructSet<V extends STransferable = STransferable> = STypeDef<'StructSet', V>;
 export type SStruct<C extends Record<string, StructValue>> = STypeDef<'Struct', C>;
 
-export type SValue =
+export type SValue<A extends STransferable = STransferable, B extends STransferable = STransferable> =
   | SBoolean
   | SNumber
   | SBigint
@@ -139,9 +139,9 @@ export type SValue =
   | SRegExp
   | SDate
   | SObject
-  | SArray
-  | SMap
-  | SSet
+  | SArray<A>
+  | SMap<A, B>
+  | SSet<A>
   | SArrayBuffer
   | SError
   | SDataView

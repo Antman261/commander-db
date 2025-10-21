@@ -10,7 +10,8 @@
     "@antman/formic-utils": "jsr:@antman/formic-utils@^0.4.0",
     "@std/bytes": "jsr:@std/bytes@^1.0.5",
     "@std/expect": "jsr:@std/expect@^1.0.13",
-    "@std/streams": "jsr:@std/streams@^1.0.9"
+    "@std/streams": "jsr:@std/streams@^1.0.9",
+    "@zod/zod": "jsr:@zod/zod@^4.1.12"
   },
   "compilerOptions": {
     "lib": [

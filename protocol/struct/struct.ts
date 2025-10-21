@@ -2,6 +2,7 @@ import { sortBy, UInt16 } from '@proto/util';
 import type { DryNumeric } from '../util/Numeric/NumericBase.ts';
 import type { Primitive } from './Transferable.ts';
 import type { StructValue } from './StructValue.ts';
+import { s } from './tag.ts';
 
 type DryStructValue =
   | Primitive
@@ -74,7 +75,7 @@ type StructConfig = {
     | Struct;
 };
 const myStruct = defineStruct('my-struct', {
-  isBoolean: Boolean,
+  isBoolean: s.bool(),
   someNumber: Number,
   someBigint: BigInt,
   someString: String,

@@ -3,7 +3,7 @@ import {
   _type,
   SArray,
   SArrayBuffer,
-  SBigint,
+  type SBigint,
   SBoolean,
   SDataView,
   SDate,
@@ -20,9 +20,6 @@ import {
   SSInt8,
   SString,
   SType,
-  STypeDef,
-  STypeIn,
-  STypeOut,
   SUInt16,
   SUInt32,
   SUInt8,
@@ -52,19 +49,21 @@ type Test = SInfer<SBoolean>;
 // };
 
 // type StructType = {[key: SType]: }
-const defineValue =
-  <V = SValue, T = SType>(t: T extends SType ? T : never): () => V =>
-  <A extends STransferable = STransferable, B extends STransferable = STransferable>(): V extends SValue ? V
-    : never =>
-    ({
-      [_type]: t,
-      [_infer]: undefined as unknown as SInfer<V extends SValue ? V : never>,
-      optional: () =>
-        ({
-          [_type]: `?${t}`,
-          [_infer]: undefined as unknown as (SInfer<V extends SValue ? V : never> | undefined),
-        }) as SOptional<T extends SType ? T : never, A, B>,
-    }) as unknown as V extends SValue ? V : never;
+const defineValue = <V = SValue, T = SType>(
+  t: T extends SType ? T : never,
+): <A extends STransferable = STransferable, B extends STransferable = STransferable>() => V =>
+<A extends STransferable = STransferable, B extends STransferable = STransferable>(): V extends SValue<A, B>
+  ? V
+  : never =>
+  ({
+    [_type]: t,
+    [_infer]: undefined as unknown as SInfer<V extends SValue ? V : never>,
+    optional: () =>
+      ({
+        [_type]: `?${t}`,
+        [_infer]: undefined as unknown as (SInfer<V extends SValue ? V : never> | undefined),
+      }) as SOptional<T extends SType ? T : never, A, B>,
+  }) as unknown as V extends SValue<A, B> ? V : never;
 export const s = {
   bool: defineValue<SBoolean>('bool'),
   number: defineValue<SNumber>('number'),
@@ -75,8 +74,8 @@ export const s = {
   Date: defineValue<SDate>('Date'),
   Object: defineValue<SObject>('Object'),
   Array: defineValue<SArray>('Array'),
-  map: defineValue<SMap>('map'),
-  set: defineValue<SSet>('set'),
+  Map: defineValue<SMap>('map'),
+  Set: defineValue<SSet>('set'),
   ArrayBuffer: defineValue<SArrayBuffer>('ArrayBuffer'),
   Error: defineValue<SError>('Error'),
   DataView: defineValue<SDataView>('DataView'),
@@ -87,7 +86,6 @@ export const s = {
   SInt16: defineValue<SSInt16>('SInt16'),
   SInt32: defineValue<SSInt32>('SInt32'),
 } as const;
-s.map<string, number>();
 //
 // %
 //

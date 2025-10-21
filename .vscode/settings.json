@@ -8,7 +8,7 @@
     "Cooldown",
     "journaling"
   ],
-  "deno.enablePaths": ["database", "client", "protocol", "simulation-tests"],
+  "deno.enablePaths": ["database", "client", "protocol", "simulation-tests", "pocs"],
   // "deno.enable":true,
   "deno.lint": true,
   "deno.codeLens.implementations": true,

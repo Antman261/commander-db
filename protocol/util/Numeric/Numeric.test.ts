@@ -34,7 +34,10 @@ Deno.test('UInt', async ({ step }) => {
     expect(new UInt8(5).value).toEqual(5);
   });
   await step('can be serialized and deserialized', () => {
-    const reSerialized = deserialize(serialize(new UInt8(5)));
+    const numeric = new UInt8(5);
+    const encodedNumeric = numericCodec.encode(numeric);
+    const buf = serialize(encodedNumeric);
+    const reSerialized = numericCodec.decode(deserialize(buf));
     console.log(reSerialized);
     // need js struct?
     expect(reSerialized.value).toEqual(5);
