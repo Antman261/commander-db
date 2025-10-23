@@ -1,5 +1,7 @@
 // import { z } from '@zod/zod';
-// import { UInt8, UInt16, UInt32, SInt16, SInt32, SInt8 } from './Numerics.ts';
+// import { SInt16, SInt32, SInt8, UInt16, UInt32, UInt8 } from './Numerics.ts';
+
+// export const ui8 = z.codec(z.instanceof(Uint8Array), z.instanceof(UInt8), {encode: (d) => d._v, decode: (e) => });
 // const defineEncodedNumeric = (kind: string) =>
 //   z.object({
 //     _t: kind,

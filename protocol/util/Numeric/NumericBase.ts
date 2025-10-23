@@ -14,9 +14,9 @@ type StorageTypes = typeof STORAGE_TYPES;
 
 export class Numeric<T extends keyof StorageTypes> {
   /** @private Underlying data view  */
-  protected _v: InstanceType<StorageTypes[T]>;
+  _v: InstanceType<StorageTypes[T]>;
   /** Numeric type */
-  protected _t: keyof StorageTypes;
+  _t: keyof StorageTypes;
   constructor(num: number, storageType: T, buffer?: ArrayBuffer, offset: number = 0) {
     this._t = storageType;
     const storeType = STORAGE_TYPES[storageType];
@@ -62,8 +62,3 @@ export class Numeric<T extends keyof StorageTypes> {
     return new Uint8Array(this._v.buffer, 0, this.size);
   }
 }
-
-export type DryNumeric<T extends keyof StorageTypes> = {
-  __v: StorageTypes[T];
-  _storeType: keyof StorageTypes;
-};

@@ -1,5 +1,7 @@
+import { z } from '@zod/zod';
 import type { CommandMessage } from './Command.ts';
 import type { Event } from './Event.ts';
+import { encodedCommandId, encodedCommandMessage } from './Command.codec.ts';
 
 /**
  * Messages sent from the database to the client
@@ -13,6 +15,20 @@ export type DbMessages = {
   events: { k: 5; e: Event[] };
   cmdIssued: { k: 6; cmdId: CommandMessage['id'] };
 };
+
+const dbMsgKind = z.union([
+  z.literal(0),
+  z.literal(1),
+  z.literal(2),
+  z.literal(3),
+  z.literal(4),
+  z.literal(5),
+  z.literal(6),
+]);
+const dbMsgEncoded = z.tuple(
+  [dbMsgKind],
+  z.union([encodedCommandMessage, encodedEvent, encodedCommandId]),
+);
 export type DbMessage = DbMessages[keyof DbMessages];
 export const dbMsg = {
   commandSubscriptionGranted: 0,
