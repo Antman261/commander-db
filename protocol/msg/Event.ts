@@ -1,12 +1,23 @@
 import { z } from '@zod/zod';
-import type { Obj } from './Obj.ts';
+import { transferableRecord } from '@proto/struct';
 
-export type Event = { id: bigint; metadata: Obj; cmdId: bigint } & Obj;
+export type Event = z.infer<typeof decodedEvents>;
 
-const encodedEvent = z.tuple([
+export const encodedEvents = z.tuple([
   z.bigint().describe('event: .id'),
   z.bigint().describe('event: cmdId'),
   z.record(z.string(), z.unknown()).describe('event: metadata'),
-  j,
-]);
-export type PotentialEvent = Omit<Event, 'id' | 'cmdId'>;
+  transferableRecord,
+]).array();
+export type EncodedEvent = z.infer<typeof encodedEvents>;
+export const decodedEvents = z.strictObject({
+  id: z.bigint(),
+  cmdId: z.bigint(),
+  payload: transferableRecord,
+  metadata: z.record(z.string(), z.unknown()),
+}).array();
+export const eventCodec = z.codec(encodedEvents, decodedEvents, {
+  encode: (m): EncodedEvent => m.map((de) => [de.id, de.cmdId, de.metadata, de.payload]),
+  decode: (m) => m.map((ee) => ({ id: ee[0], cmdId: ee[1], metadata: ee[2], payload: ee[3] })),
+});
+export type InputEvent = Omit<Event, 'id' | 'cmdId'>;

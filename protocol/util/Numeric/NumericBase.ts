@@ -10,7 +10,7 @@ const STORAGE_TYPES = {
   // SBigInt: BigInt64Array,
 } as const;
 
-type StorageTypes = typeof STORAGE_TYPES;
+export type StorageTypes = typeof STORAGE_TYPES;
 
 export class Numeric<T extends keyof StorageTypes> {
   /** @private Underlying data view  */

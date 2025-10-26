@@ -1,5 +1,5 @@
 import type { Bigint128 } from './Bigint128.ts';
-import type { PotentialEvent } from './Event.ts';
+import type { InputEvent } from './Event.ts';
 import type { Obj } from './Obj.ts';
 
 export type CommandId = Bigint128;
@@ -69,4 +69,4 @@ export type CommandMessage = Omit<
   { id: NonNullable<CommandInputMessage['id']> } & CommandInputMessage,
   'maxAttempts'
 >;
-export type CommandResult = PotentialEvent[] | Error | string;
+export type CommandResult = InputEvent[] | Error | string;

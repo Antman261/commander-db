@@ -1,7 +1,7 @@
 import { delay } from '@std/async';
 import { is, isUndefined } from '@antman/formic-utils';
 import { LifecycleNode } from '@antman/lifecycle';
-import { CommandResult, DbMessage } from '@fe-db/proto';
+import { CommandResult, DbMsg } from '@fe-db/proto';
 import { getActiveStreams } from '@db/state';
 import { cmdStatus, CommandPending, CommandRunning } from '@db/type';
 import { CommandSubscriber } from './CommandSubscriber.ts';
@@ -10,7 +10,7 @@ import { getActiveSpan, setSpanAttributes, withTelemetry } from '@db/telemetry';
 
 export type Candidate = {
   id: string;
-  sendMsg<M extends DbMessage>(cmd: M): void;
+  sendMsg<M extends DbMsg>(cmd: M): void;
   maxConcurrentCmds: number;
   commitHash?: string;
 };

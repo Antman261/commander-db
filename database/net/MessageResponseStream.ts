@@ -5,13 +5,13 @@ import {
   ClientMessage,
   clientMsg,
   commandIssued,
-  DbMessage,
+  DbMsg,
   DecodedMessageTuple,
   toClientMsgKind,
 } from '@fe-db/proto';
 import { setSpanAttributes, withTelemetry } from '@db/telemetry';
 
-type Controller = TransformStreamDefaultController<DbMessage>;
+type Controller = TransformStreamDefaultController<DbMsg>;
 type SendMessage = Controller['enqueue'];
 type MessageTuple = DecodedMessageTuple<ClientMessage>;
 
@@ -65,7 +65,7 @@ const defineMessageHandler = (controller: Controller, connId: string): MessageHa
   }, 'MessageResponseStream.onMessage');
 };
 
-export class MessageResponseStream extends TransformStream<DecodedMessageTuple<ClientMessage>, DbMessage> {
+export class MessageResponseStream extends TransformStream<DecodedMessageTuple<ClientMessage>, DbMsg> {
   constructor(id: string) {
     let handleMessage: MessageHandler;
     super({

@@ -6,19 +6,19 @@ import {
   commandCompleted,
   type CommandInputMessage,
   type CommandMessage,
-  type DbMessage,
-  dbMsg,
+  type DbMsg,
+  dbMsgKind,
   endCommandSubscription,
   endEventSubscription,
+  type InputEvent,
   issueCommand,
-  type PotentialEvent,
   requestCommandSubscription,
   requestEventSubscription,
 } from '@fe-db/proto';
 import { encodeBinaryMessage } from './encodeBinaryMessage.ts';
 import { type ConnectionConfig, verifyConfig } from './config.ts';
 
-type CommandHandler = (command: CommandMessage) => Promise<PotentialEvent[] | Error | string>;
+type CommandHandler = (command: CommandMessage) => Promise<InputEvent[] | Error | string>;
 
 type Connection = {
   connection: Deno.TcpConn;
@@ -71,11 +71,11 @@ export const initClient = async (
   const initIssueCommandConnection = async () => {
     const promiseBuffer: PromiseWithResolvers<CommandMessage['id']>[] = [];
     const { send, connection } = await connect();
-    const messageStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMessage>());
+    const messageStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMsg>());
     (async () => {
       for await (const [msg] of messageStream) {
         switch (msg.k) {
-          case dbMsg.commandIssued: {
+          case dbMsgKind.cmdIssued: {
             promiseBuffer.shift()?.resolve(msg.cmdId);
           }
         }
@@ -91,13 +91,13 @@ export const initClient = async (
   return {
     async startCommandSubscription(onCommand: CommandHandler, maxConcurrency = 20, aggregates?: string[]) {
       const { connection, send, close } = await connect();
-      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMessage>());
+      const commandStream = connection.readable.pipeThrough(BinaryDecodeStream<DbMsg>());
       const commandProcessingLoop = (async () => {
         for await (const [msg] of commandStream) {
           switch (msg.k) {
-            case dbMsg.commandSubscriptionEnded:
+            case dbMsgKind.cmdSubEnded:
               return await close();
-            case dbMsg.commandAssigned:
+            case dbMsgKind.cmdAssigned:
               await send(commandCompleted(await onCommand(msg.cmd), msg.cmd.id));
               break;
           }

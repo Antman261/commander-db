@@ -1,19 +1,38 @@
-import { $brand, z } from '@zod/zod';
+import { z } from '@zod/zod';
+import { newUint16Tuple, newUint8Tuple, numZod } from '../util/mod.ts';
+import { transferableRecord } from '@proto/struct';
 
-const decodedCommandMessage = z.strictObject({
-  entity: z.string().describe(''),
-  entityId: z.union([z.bigint(), z.string()]),
-  id: z.bigint().describe('Recommended: supply a meaningful idempotency key as the command id'),
-  idempotentPeriodHours: z.number(),
-  input: z.record(z.string(), z.unknown()),
-  maxRuns: z.number(),
-  metadata: z.record(z.string(), z.unknown()),
-  name: z.string(),
-  parentCommandId: z.bigint(),
-  runAfter: z.number(),
-  runCooldownMs: z.number(),
-  runTimeoutSeconds: z.number(),
-  source: z.string(),
+// todo: Consider building a zod-binary package using https://github.com/iwoplaza/typed-binary/tree/master
+
+const entity = z.string().describe('');
+const entityId = z.union([z.bigint(), z.string()]);
+export const cmdId = z.bigint().describe(
+  'Recommended: supply a meaningful idempotency key as the command id',
+);
+const idempotentPeriodHours = numZod.Ui16;
+const input = transferableRecord;
+const maxRuns = numZod.Ui8;
+const metadata = transferableRecord;
+const name = z.string();
+const parentCommandId = z.bigint();
+const runAfter = z.number();
+const runCooldownMs = numZod.Ui8;
+const runTimeoutSeconds = numZod.Ui8;
+const source = z.string();
+export const decodedCommandMessage = z.strictObject({
+  entity,
+  entityId,
+  id: cmdId,
+  idempotentPeriodHours: idempotentPeriodHours.out,
+  input,
+  maxRuns: maxRuns.out,
+  metadata,
+  name,
+  parentCommandId,
+  runAfter,
+  runCooldownMs: runCooldownMs.out,
+  runTimeoutSeconds: runTimeoutSeconds.out,
+  source,
 }).required().brand('cmdMsg');
 export type DecodedCommandMessage = z.infer<typeof decodedCommandMessage>;
 
@@ -22,19 +41,42 @@ export const encodedCommandMessage = z.tuple([
   z.instanceof(ArrayBuffer).describe(
     'Buffer storing maxRuns, runCooldownMs, runTimeoutSeconds, and idempotentPeriodHours',
   ),
-  z.string().describe('cmd: entity'),
-  z.union([z.bigint(), z.string()]).describe('cmd: entityId'),
-  encodedCommandId,
-  z.record(z.string(), z.unknown()).describe('cmd: input'),
-  z.record(z.string(), z.unknown()).describe('cmd: metadata'),
-  z.string().describe('cmd: name'),
-  z.bigint().describe('cmd: parentCommandId'),
-  z.number().describe('cmd: runAfter'),
-  z.string().describe('cmd: source'),
+  entity,
+  entityId,
+  cmdId,
+  input,
+  metadata,
+  name,
+  parentCommandId,
+  runAfter,
+  source,
 ]);
 export type EncodedCommandMessage = z.infer<typeof encodedCommandMessage>;
-export const commandMessageCodec = z.codec(decodedCommandMessage, encodedCommandMessage, {
-  decode: (msg) => {
+export const commandMessageCodec = z.codec(encodedCommandMessage, decodedCommandMessage, {
+  decode: (
+    [buf, entity, entityId, id, input, metadata, name, parentCommandId, runAfter, source],
+  ) => {
+    const ui8s = newUint8Tuple(buf, 0, 3);
+    const ui16 = newUint16Tuple(buf, 3, 1);
+
+    return decodedCommandMessage.parse({
+      maxRuns: numZod.Ui8.decode(ui8s[0]),
+      runCooldownMs: numZod.Ui8.decode(ui8s[1]),
+      runTimeoutSeconds: numZod.Ui8.decode(ui8s[2]),
+      idempotentPeriodHours: numZod.Ui16.decode(ui16[0]),
+      entity,
+      entityId,
+      id,
+      input,
+      metadata,
+      name,
+      parentCommandId,
+      runAfter,
+      source,
+    });
+  },
+  encode: (msg): EncodedCommandMessage => {
+    const keysSorted = decodedCommandMessage.def.shape.idempotentPeriodHours._zod.def.innerType;
     const buf = new ArrayBuffer(5);
     new Uint8Array(buf, 0, 3).set([
       msg.maxRuns ?? -1,
@@ -42,7 +84,7 @@ export const commandMessageCodec = z.codec(decodedCommandMessage, encodedCommand
       msg.runTimeoutSeconds ?? -1,
     ]);
     new Uint16Array(buf, 3, 1).set([msg.idempotentPeriodHours ?? -1]);
-    const encoded: EncodedCommandMessage = [
+    return [
       buf,
       msg.entity,
       msg.entityId,
@@ -54,26 +96,5 @@ export const commandMessageCodec = z.codec(decodedCommandMessage, encodedCommand
       msg.runAfter,
       msg.source,
     ];
-    return encoded;
-  },
-  encode: (m) => {
-    const ui8s = new Uint8Array(m[0], 0, 3);
-    const ui16 = new Uint16Array(m[0], 3, 1);
-    const coded: DecodedCommandMessage = {
-      maxRuns: ui8s[0],
-      runCooldownMs: ui8s[1],
-      runTimeoutSeconds: ui8s[2],
-      idempotentPeriodHours: ui16[3],
-      entity: m[1],
-      entityId: m[2],
-      id: m[3],
-      input: m[4],
-      metadata: m[5],
-      name: m[6],
-      parentCommandId: m[7],
-      runAfter: m[8],
-      source: m[9],
-    };
-    return coded;
   },
 });

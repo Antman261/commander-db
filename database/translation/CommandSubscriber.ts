@@ -2,7 +2,7 @@ import {
   commandAssigned,
   commandSubscriptionEnded,
   commandSubscriptionGranted,
-  DbMessage,
+  DbMsg,
 } from '../../protocol/msg/DbMessage.ts';
 import { CommandPending } from '@db/type';
 import { Candidate } from './cmdSubManager.ts';
@@ -10,7 +10,7 @@ import { toCommandMessage } from './adaptors/toCommandMessage.ts';
 
 export class CommandSubscriber {
   id: Candidate['id'];
-  #sendMsg: <M extends DbMessage>(cmd: M) => void;
+  #sendMsg: <M extends DbMsg>(cmd: M) => void;
   #whenDrained: PromiseWithResolvers<void>;
   #lastSeen: number;
   #firstSeen: number;

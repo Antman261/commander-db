@@ -2,16 +2,16 @@ import { z } from '@zod/zod';
 
 // All hail the mighty structured clone algorithm, we weep in grand beneficence: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
 
-export type Primitive = z.infer<typeof xfrPrimitive>;
-export const xfrPrimitive = z.union([
+export type Primitive = z.infer<typeof transferablePrimitive>;
+export const transferablePrimitive = z.union([
   z.boolean(),
   z.number(),
   z.string(),
   z.bigint(),
   z.null(),
-  z.undefined(),
+  z.undefined(), //
 ]);
-export const xfrTypedArray = z.union([
+export const transferableTypedArray = z.union([
   z.instanceof(Uint8Array),
   z.instanceof(Uint16Array),
   z.instanceof(Uint32Array),
@@ -24,31 +24,35 @@ export const xfrTypedArray = z.union([
   z.instanceof(Float32Array),
   z.instanceof(Float64Array),
 ]);
-export type TypedArray = z.infer<typeof xfrTypedArray>;
-export const xfrClass = z.union([
+export type TypedArray = z.infer<typeof transferableTypedArray>;
+export const transferableClasses = z.union([
   z.instanceof(RegExp),
   z.date(),
   z.instanceof(DataView),
   z.instanceof(Error),
   z.instanceof(ArrayBuffer),
 ]);
-export type TransferableClasses = z.infer<typeof xfrClass>;
-export const xfrSet: z.ZodType<Set<STransferable>> = z.set(z.lazy(() => transferable));
-export const xfrMap: z.ZodType<Map<STransferable, STransferable>> = z.map(
-  z.lazy(() => transferable),
-  z.lazy(() => transferable),
+export type TransferableClasses = RegExp | DataView | Error | ArrayBuffer | Date;
+export type TransferableSet = Set<CdbTransferable>;
+export type TransferableMap = Map<CdbTransferable, CdbTransferable>;
+export type TransferableRecord = { [key: string]: CdbTransferable };
+export const transferableSet = z.custom<TransferableSet>((v) => v instanceof Set);
+export const transferableMap = z.custom<TransferableMap>((v) => v instanceof Map);
+export const transferableRecord = z.custom<TransferableRecord>((v) =>
+  typeof v === 'object' && Array.isArray(v) === false
 );
-export const xfrRecord: z.ZodType<{ [key: string]: STransferable }> = z.object().catchall(
-  z.lazy(() => transferable),
-);
-export const transferable: z.ZodType<STransferable> = z.union([
-  xfrClass,
-  xfrTypedArray,
-  xfrPrimitive,
-  // z.lazy(() => z.union([xfrSet, xfrMap, xfrRecord])),
+export const transferable = z.union([
+  ...transferableClasses.options,
+  ...transferableTypedArray.options,
+  ...transferablePrimitive.options,
+  transferableMap,
+  transferableSet,
+  transferableRecord,
 ]);
-export type STransferable =
+export type CdbTransferable =
   | Primitive
   | TypedArray
   | TransferableClasses
-  | { [key: string]: STransferable };
+  | TransferableSet
+  | TransferableMap
+  | TransferableRecord;

@@ -1,51 +1,133 @@
 import { z } from '@zod/zod';
 import type { CommandMessage } from './Command.ts';
-import type { Event } from './Event.ts';
-import { encodedCommandId, encodedCommandMessage } from './Command.codec.ts';
+import { decodedEvents, encodedEvents, eventCodec } from './Event.ts';
+import {
+  cmdId,
+  commandMessageCodec as cmdMsgCodec,
+  decodedCommandMessage as decodedCmdMsg,
+  encodedCommandMessage,
+} from './Command.codec.ts';
+import type { OfK } from '@proto/util';
 
-/**
- * Messages sent from the database to the client
- */
-export type DbMessages = {
-  cmdSubGranted: { k: 0 };
-  cmdSubEnded: { k: 1 };
-  cmdAssigned: { k: 2; cmd: CommandMessage };
-  eventSubGranted: { k: 3 };
-  eventSubEnded: { k: 4 };
-  events: { k: 5; e: Event[] };
-  cmdIssued: { k: 6; cmdId: CommandMessage['id'] };
-};
+const dbMsgKindZ = z.enum({
+  cmdSubGranted: 0,
+  cmdSubEnded: 1,
+  cmdAssigned: 2,
+  eventSubGranted: 3,
+  eventSubEnded: 4,
+  events: 5,
+  cmdIssued: 6,
+});
+export const dbMsgKind = dbMsgKindZ.enum;
+type DbMsgKind = z.infer<typeof dbMsgKindZ>;
+const { cmdSubGranted, cmdSubEnded, cmdAssigned, eventSubGranted, eventSubEnded, events, cmdIssued } =
+  dbMsgKind;
 
-const dbMsgKind = z.union([
-  z.literal(0),
-  z.literal(1),
-  z.literal(2),
-  z.literal(3),
-  z.literal(4),
-  z.literal(5),
-  z.literal(6),
+const cmdSubGrantedDecoded = z.strictObject({ k: z.literal(cmdSubGranted) });
+type CmdSubGrantedDecoded = z.infer<typeof cmdSubGrantedDecoded>;
+const cmdSubEndedDecoded = z.strictObject({ k: z.literal(cmdSubEnded) });
+type CmdSubEndedDecoded = z.infer<typeof cmdSubEndedDecoded>;
+const cmdAssignedDecoded = z.strictObject({ k: z.literal(cmdAssigned), cmd: decodedCmdMsg });
+type CmdAssignedDecoded = z.infer<typeof cmdAssignedDecoded>;
+const eventSubGrantedDecoded = z.strictObject({ k: z.literal(eventSubGranted) });
+type EventSubGrantedDecoded = z.infer<typeof eventSubGrantedDecoded>;
+const eventSubEndedDecoded = z.strictObject({ k: z.literal(eventSubEnded) });
+type EventSubEndedDecoded = z.infer<typeof eventSubEndedDecoded>;
+const eventsDecoded = z.strictObject({ k: z.literal(events), e: decodedEvents });
+type EventsDecoded = z.infer<typeof eventsDecoded>;
+const cmdIssuedDecoded = z.strictObject({ k: z.literal(cmdIssued), cmdId });
+type CmdIssuedDecoded = z.infer<typeof cmdIssuedDecoded>;
+export const dbMsgDecoded = z.discriminatedUnion('k', [
+  cmdSubGrantedDecoded,
+  cmdSubEndedDecoded,
+  cmdAssignedDecoded,
+  eventSubGrantedDecoded,
+  eventSubEndedDecoded,
+  eventsDecoded,
+  cmdIssuedDecoded,
 ]);
-const dbMsgEncoded = z.tuple(
-  [dbMsgKind],
-  z.union([encodedCommandMessage, encodedEvent, encodedCommandId]),
-);
-export type DbMessage = DbMessages[keyof DbMessages];
-export const dbMsg = {
-  commandSubscriptionGranted: 0,
-  commandSubscriptionEnded: 1,
-  commandAssigned: 2,
-  eventSubscriptionGranted: 3,
-  eventSubscriptionEnded: 4,
-  eventsDispatched: 5,
-  commandIssued: 6,
-} as const;
+export type DbMsg = z.infer<typeof dbMsgDecoded>;
 
-export const commandSubscriptionGranted = (): DbMessages['cmdSubGranted'] => ({ k: 0 });
-export const commandSubscriptionEnded = (): DbMessages['cmdSubEnded'] => ({ k: 1 });
-export const commandAssigned = (cmd: CommandMessage): DbMessages['cmdAssigned'] => {
-  return ({ k: 2, cmd });
-};
-export const eventSubscriptionGranted = (): DbMessages['eventSubGranted'] => ({ k: 3 });
-export const eventSubscriptionEnded = (): DbMessages['eventSubEnded'] => ({ k: 4 });
-export const eventsDispatched = (e: Event[]): DbMessages['events'] => ({ k: 5, e });
-export const commandIssued = (cmdId: CommandMessage['id']): DbMessages['cmdIssued'] => ({ k: 6, cmdId });
+export const cmdSubGrantedEncoded = z.tuple([z.literal(cmdSubGranted)]);
+export type CmdSubGrantedEncoded = z.infer<typeof cmdSubGrantedEncoded>;
+export const cmdSubEndedEncoded = z.tuple([z.literal(cmdSubEnded)]);
+export type CmdSubEndedEncoded = z.infer<typeof cmdSubEndedEncoded>;
+export const cmdAssignedEncoded = z.tuple([z.literal(cmdAssigned), encodedCommandMessage]);
+export type CmdAssignedEncoded = z.infer<typeof cmdAssignedEncoded>;
+export const eventSubGrantedEncoded = z.tuple([z.literal(eventSubGranted)]);
+export type EventSubGrantedEncoded = z.infer<typeof eventSubGrantedEncoded>;
+export const eventSubEndedEncoded = z.tuple([z.literal(eventSubEnded)]);
+export type EventSubEndedEncoded = z.infer<typeof eventSubEndedEncoded>;
+export const eventsEncoded = z.tuple([z.literal(events)], encodedEvents);
+export type EventsEncoded = z.infer<typeof eventsEncoded>;
+export const cmdIssuedEncoded = z.tuple([z.literal(cmdIssued), cmdId]);
+export type CmdIssuedEncoded = z.infer<typeof cmdIssuedEncoded>;
+
+export const cmdSubGrantedCodec = z.codec(cmdSubGrantedEncoded, cmdSubGrantedDecoded, {
+  encode: (m): CmdSubGrantedEncoded => [m.k],
+  decode: (m) => ({ k: m[0] }),
+});
+export const cmdSubEndedCodec = z.codec(cmdSubEndedEncoded, cmdSubEndedDecoded, {
+  encode: (m): CmdSubEndedEncoded => [m.k],
+  decode: (m) => ({ k: m[0] }),
+});
+export const cmdAssignedCodec = z.codec(cmdAssignedEncoded, cmdAssignedDecoded, {
+  encode: (m): CmdAssignedEncoded => [
+    m.k,
+    cmdMsgCodec.encode(decodedCmdMsg.parse(m.cmd)),
+  ],
+  decode: (m) => ({ k: m[0], cmd: cmdMsgCodec.decode(m[1]) }),
+});
+export const eventSubGrantedCodec = z.codec(eventSubGrantedEncoded, eventSubGrantedDecoded, {
+  encode: (m): EventSubGrantedEncoded => [m.k],
+  decode: (m) => ({ k: m[0] }),
+});
+export const eventSubEndedCodec = z.codec(eventSubEndedEncoded, eventSubEndedDecoded, {
+  encode: (m): EventSubEndedEncoded => [m.k],
+  decode: (m) => ({ k: m[0] }),
+});
+export const eventsCodec = z.codec(eventsEncoded, eventsDecoded, {
+  encode: (m): EventsEncoded => [m.k, eventCodec.encode(m.e)],
+  decode: (m) => ({ k: m[0], e: eventCodec.decode(m[1]) }),
+});
+
+export const cmdIssuedCodec = z.codec(cmdIssuedEncoded, cmdIssuedDecoded, {
+  encode: (m): CmdIssuedEncoded => [m.k, m.cmdId],
+  decode: (m) => ({ k: m[0], cmdId: m[1] }),
+});
+const codecMap = {
+  [cmdSubGranted]: cmdSubGrantedCodec,
+  [cmdSubEnded]: cmdSubEndedCodec,
+  [cmdAssigned]: cmdAssignedCodec,
+  [eventSubGranted]: eventSubGrantedCodec,
+  [eventSubEnded]: eventSubEndedCodec,
+  [events]: eventsCodec,
+  [cmdIssued]: cmdIssuedCodec,
+} as const satisfies Record<DbMsgKind, z.ZodCodec>;
+export const dbMsgEncoded = z.union([
+  cmdSubGrantedEncoded,
+  cmdSubEndedEncoded,
+  cmdAssignedEncoded,
+  eventSubGrantedEncoded,
+  eventSubEndedEncoded,
+  eventsEncoded,
+  cmdIssuedEncoded,
+]);
+export const dbMsgCodec = z.codec(dbMsgEncoded, dbMsgDecoded, {
+  encode: (o) => codecMap[o.k].encode(o as any),
+  decode: (o) => codecMap[o[0]].decode(o as any),
+});
+type OfDbMsg<T> = OfK<DbMsg, T>;
+export const commandSubscriptionGranted = (): OfDbMsg<typeof cmdSubGranted> => ({ k: cmdSubGranted });
+export const commandSubscriptionEnded = (): OfDbMsg<typeof cmdSubEnded> => ({ k: cmdSubEnded });
+export const commandAssigned = (cmd: CmdAssignedDecoded['cmd']): OfDbMsg<typeof cmdAssigned> => ({
+  k: cmdAssigned,
+  cmd,
+});
+export const eventSubscriptionGranted = (): OfDbMsg<typeof eventSubGranted> => ({ k: eventSubGranted });
+export const eventSubscriptionEnded = (): OfDbMsg<typeof eventSubEnded> => ({ k: eventSubEnded });
+export const eventsDispatched = (e: EventsDecoded['e']): OfDbMsg<typeof events> => ({ k: events, e });
+export const commandIssued = (cmdId: CommandMessage['id']): OfDbMsg<typeof cmdIssued> => ({
+  k: cmdIssued,
+  cmdId,
+});
