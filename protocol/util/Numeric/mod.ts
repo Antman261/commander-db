@@ -1,2 +1,2 @@
 export * from './Numerics.ts';
-export * from './Numby.ts';
+export * from '../../struct/Numby.ts';

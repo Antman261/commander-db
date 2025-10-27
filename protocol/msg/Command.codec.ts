@@ -1,5 +1,5 @@
 import { z } from '@zod/zod';
-import { newUint16Tuple, newUint8Tuple, numZod } from '../util/mod.ts';
+import { newUint16Tuple, newUint8Tuple, ui16, ui8 } from '../util/mod.ts';
 import { transferableRecord } from '@proto/struct';
 
 // todo: Consider building a zod-binary package using https://github.com/iwoplaza/typed-binary/tree/master
@@ -9,15 +9,15 @@ const entityId = z.union([z.bigint(), z.string()]);
 export const cmdId = z.bigint().describe(
   'Recommended: supply a meaningful idempotency key as the command id',
 );
-const idempotentPeriodHours = numZod.Ui16;
+const idempotentPeriodHours = ui16;
 const input = transferableRecord;
-const maxRuns = numZod.Ui8;
+const maxRuns = ui8;
 const metadata = transferableRecord;
 const name = z.string();
 const parentCommandId = z.bigint();
 const runAfter = z.number();
-const runCooldownMs = numZod.Ui8;
-const runTimeoutSeconds = numZod.Ui8;
+const runCooldownMs = ui8;
+const runTimeoutSeconds = ui8;
 const source = z.string();
 export const decodedCommandMessage = z.strictObject({
   entity,
@@ -57,13 +57,13 @@ export const commandMessageCodec = z.codec(encodedCommandMessage, decodedCommand
     [buf, entity, entityId, id, input, metadata, name, parentCommandId, runAfter, source],
   ) => {
     const ui8s = newUint8Tuple(buf, 0, 3);
-    const ui16 = newUint16Tuple(buf, 3, 1);
+    const ui16s = newUint16Tuple(buf, 3, 1);
 
     return decodedCommandMessage.parse({
-      maxRuns: numZod.Ui8.decode(ui8s[0]),
-      runCooldownMs: numZod.Ui8.decode(ui8s[1]),
-      runTimeoutSeconds: numZod.Ui8.decode(ui8s[2]),
-      idempotentPeriodHours: numZod.Ui16.decode(ui16[0]),
+      maxRuns: ui8.decode(ui8s[0]),
+      runCooldownMs: ui8.decode(ui8s[1]),
+      runTimeoutSeconds: ui8.decode(ui8s[2]),
+      idempotentPeriodHours: ui16.decode(ui16s[0]),
       entity,
       entityId,
       id,
@@ -77,6 +77,7 @@ export const commandMessageCodec = z.codec(encodedCommandMessage, decodedCommand
   },
   encode: (msg): EncodedCommandMessage => {
     const keysSorted = decodedCommandMessage.def.shape.idempotentPeriodHours._zod.def.innerType;
+    decodedCommandMessage.def.shape.idempotentPeriodHours.meta();
     const buf = new ArrayBuffer(5);
     new Uint8Array(buf, 0, 3).set([
       msg.maxRuns ?? -1,
